@@ -1,0 +1,180 @@
+// --- File: src/pages/GiveFeedback.js ---
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import api from '../api';
+import './TeammateLecturer.css'; // 确保引用了讲师端的 CSS
+
+function GiveFeedback() {
+  const { id } = useParams(); // 获取 URL 中的项目 ID
+  const navigate = useNavigate();
+  const [submission, setSubmission] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isSupervisor, setIsSupervisor] = useState(false);
+  const [comment, setComment] = useState('');
+  const [newStatus, setNewStatus] = useState('approved');
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        // 【修改】: 并行获取 submission 详情和当前用户信息
+        const [subRes, userRes] = await Promise.all([
+            api.get(`/submissions/${id}/`),
+            api.get('/user/me/')
+        ]);
+
+        const submissionData = subRes.data;
+        const userData = userRes.data;
+
+        setSubmission(submissionData);
+        setCurrentUser(userData);
+
+        // 【核心判断】: 检查当前用户ID是否与该 submission 的导师ID匹配
+        if (submissionData && userData) {
+            setIsSupervisor(submissionData.supervisor === userData.id);
+        }
+
+      } catch (err) {
+        console.error("Failed to load details", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDetails();
+  }, [id]);
+
+  const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!comment.trim()) return alert("Please provide comments.");
+
+        try {
+            const payload = { comment };
+            if (isSupervisor) {
+                payload.new_status = newStatus;
+            }
+
+            // 【最终核心确认】: 确保调用的是 'add-feedback'
+            await api.post(`submissions/${id}/add-feedback/`, payload);
+
+            alert("Feedback submitted successfully!");
+            navigate(-1);
+        } catch (err) {
+            alert("Submit failed.");
+            console.error("Submit Feedback Error:", err.response?.data || err);
+        }
+    };
+
+  if (loading) return <div className="main-content">Loading submission details...</div>;
+  if (!submission) return <div className="main-content">Submission not found.</div>;
+
+  return (
+    <div className="main-content">
+      {/* 【核心修改】: 添加一个包含返回按钮的 flex 容器 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px' }}>
+          <button onClick={() => navigate(-1)} className="btn btn-secondary back-button">
+              ← Back to List
+          </button>
+          <header style={{ margin: 0 }}>
+              <h1>Review Title Registration Form</h1>
+              <p style={{ margin: 0, color: '#6c757d' }}>Reviewing student: <strong>{submission.student_name}</strong></p>
+          </header>
+      </div>
+
+      <div className="card">
+        {/* 第一部分：学生基本资料 (只读) */}
+        <div className="form-section">
+          <h4>1. Details of Student</h4>
+          <div className="trf-grid">
+            <div className="grid-col">
+              <div className="detail-item"><strong>Student Name:</strong> <span>{submission.student_name}</span></div>
+              <div className="detail-item"><strong>Student ID:</strong> <span>{submission.student_id_no}</span></div>
+              <div className="detail-item"><strong>Programme:</strong> <span>{submission.programme}</span></div>
+            </div>
+            <div className="grid-col">
+              <div className="detail-item"><strong>Semester:</strong> <span>{submission.semester}</span></div>
+              <div className="detail-item"><strong>Proposed Title:</strong> <p style={{fontWeight:'600'}}>{submission.proposed_project_title}</p></div>
+            </div>
+          </div>
+        </div>
+
+        {/* 第二部分：项目 6 大细节 (对应队友的 6 个框) */}
+        <div className="form-section">
+          <h4>2. Project Details</h4>
+          <div className="trf-grid-3-col">
+            <div className="detail-item-box">
+              <strong>Short Description</strong>
+              <p>{submission.detail_description}</p>
+            </div>
+            <div className="detail-item-box">
+              <strong>Problem/Challenges</strong>
+              <p>{submission.detail_problem}</p>
+            </div>
+            <div className="detail-item-box">
+              <strong>Value/Benefit</strong>
+              <p>{submission.detail_value}</p>
+            </div>
+            <div className="detail-item-box">
+              <strong>Scope & Tools</strong>
+              <p>{submission.detail_scope}</p>
+            </div>
+            <div className="detail-item-box">
+              <strong>Similar Systems</strong>
+              <p>{submission.detail_similar_system}</p>
+            </div>
+            <div className="detail-item-box">
+              <strong>Proposed Features</strong>
+              <p>{submission.detail_features}</p>
+            </div>
+          </div>
+        </div>
+
+        <hr className="divider" style={{margin: '30px 0', border: 'none', borderTop: '1px solid #eee'}} />
+
+         <form onSubmit={handleSubmit} className="feedback-form">
+          <h3>Your Feedback & Evaluation</h3>
+
+          {currentUser && (
+            <p style={{ fontSize: '0.9rem', color: '#666' }}>
+              Reviewing as: <strong>{currentUser.profile?.full_name || currentUser.username}</strong>
+            </p>
+          )}
+          
+          <div className="form-group">
+            <label>Comments:</label>
+            <textarea 
+              rows="6" 
+              placeholder="Provide constructive feedback here..." 
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              required
+            />
+          </div>
+
+          {isSupervisor && (
+            <div className="form-group">
+                <label>Set New Status:</label>
+                <div className="status-options">
+                  <label>
+                    <input type="radio" value="approved" checked={newStatus === 'approved'} onChange={() => setNewStatus('approved')} /> 
+                    <span>✔ Approve</span>
+                  </label>
+                  <label>
+                    <input type="radio" value="revision" checked={newStatus === 'revision'} onChange={() => setNewStatus('revision')} /> 
+                    <span>❌ Needs Revision</span>
+                  </label>
+                </div>
+            </div>
+          )}
+
+          <div style={{ textAlign: 'right', marginTop: '30px' }}>
+            <button type="submit" className="btn btn-review">
+              Submit Feedback
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default GiveFeedback;

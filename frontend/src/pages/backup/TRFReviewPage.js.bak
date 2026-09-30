@@ -1,0 +1,112 @@
+// --- src/pages/TRFReviewPage.js (最终筛选功能版) ---
+import React, { useState, useEffect } from 'react';
+import api from '../api';
+import moment from 'moment';
+import { useNavigate } from 'react-router-dom';
+import './TeammateLecturer.css'; // 继续使用您的 TeammateLecturer.css
+
+function TRFReviewPage({ isGlobal = false }) {
+  const [submissions, setSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // 【新增】: 创建一个新的 state 来管理筛选条件
+  const [statusFilter, setStatusFilter] = useState(''); // 默认为空，代表'All'
+
+  useEffect(() => {
+    const fetchSubmissions = async () => {
+      setLoading(true);
+      try {
+        const url = '/submissions/';
+        const params = { view: isGlobal ? 'all' : 'mine' };
+        const res = await api.get(url, { params: params });
+        
+        // 按学生姓名A-Z排序
+        const sortedSubmissions = res.data.sort((a, b) => 
+          (a.student_name || '').localeCompare(b.student_name || '')
+        );
+        
+        setSubmissions(sortedSubmissions);
+
+      } catch (err) {
+        console.error("Failed to fetch submissions", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSubmissions();
+  }, [isGlobal]);
+
+  // 【新增】: 在前端根据筛选条件过滤要显示的 submissions
+  const filteredSubmissions = submissions.filter(sub => {
+    if (!statusFilter) {
+      return true; // 如果没有设置筛选 (statusFilter为空), 则显示全部
+    }
+    return sub.status === statusFilter;
+  });
+
+  return (
+    <div className="main-content">
+      <header>
+        <h1>{isGlobal ? "All TRF Submissions" : "My Students' Submissions"}</h1>
+        <p>{isGlobal ? "Review all TRF submissions across the department..." : "Review and manage project submissions assigned to you."}</p>
+      </header>
+
+      <div className="card">
+        {/* 【核心新增】: 在表格前添加筛选器的 UI */}
+        <div className="filters-wrapper">
+            <div className="course-filter-container">
+                <span>Filter by Stage: </span>
+                <button onClick={() => setStatusFilter('')} className={`course-filter-btn ${!statusFilter ? 'active' : ''}`}>All</button>
+                <button onClick={() => setStatusFilter('approved')} className={`course-filter-btn ${statusFilter === 'approved' ? 'active' : ''}`}>Approved</button>
+                <button onClick={() => setStatusFilter('pending')} className={`course-filter-btn ${statusFilter === 'pending' ? 'active' : ''}`}>Pending</button>
+                <button onClick={() => setStatusFilter('revision')} className={`course-filter-btn ${statusFilter === 'revision' ? 'active' : ''}`}>Needs Revision</button>
+            </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Project Title</th>
+              <th>Date Submitted</th>
+              <th>TRF Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="5" style={{textAlign: 'center'}}>Loading...</td></tr>
+            // 【核心修改】: 使用 filteredSubmissions 进行渲染
+            ) : filteredSubmissions.length === 0 ? (
+              <tr><td colSpan="5" style={{textAlign: 'center'}}>No submissions found for the selected filter.</td></tr>
+            ) : (
+              filteredSubmissions.map(sub => (
+                <tr key={sub.id}>
+                  <td>{sub.student_name || 'N/A'}</td>
+                  <td>{sub.proposed_project_title || 'N/A'}</td>
+                  <td>{moment(sub.created_at).format('DD MMM YYYY')}</td>
+                  <td>
+                    <span className={`status ${sub.status}`}>
+                      {sub.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button 
+                      className={`btn ${sub.status === 'pending' ? 'btn-review' : 'btn-view'}`} 
+                      onClick={() => navigate(`/give-feedback/${sub.id}`)}
+                    >
+                      {sub.status === 'pending' ? 'Review' : 'View Details'}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export default TRFReviewPage;

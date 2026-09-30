@@ -1,0 +1,1059 @@
+/* ==========================================================================
+   TRF.css — Title Registration Form screens
+   Shared, self-contained styling for:
+     • TRFSubmissionPage  (student fills in the TRF)
+     • TRFReviewPage      (lecturer / coordinator submission list)
+     • GiveFeedback       (lecturer reviews, comments, approves or requests revision)
+
+   Everything is namespaced with the `trf-` prefix so it can never collide with
+   the older global TeammateStudent.css / TeammateLecturer.css / Dashboard.css
+   rules that are also bundled application-wide.
+   ========================================================================== */
+
+.trf-page {
+  /* --- design tokens (match the rest of FYPHub) --- */
+  --trf-navy: #1a3e5f;
+  --trf-blue: #2a72d8;
+  --trf-blue-dark: #1f5cb8;
+  --trf-ink: #0f172a;
+  --trf-body: #475569;
+  --trf-muted: #64748b;
+  --trf-faint: #94a3b8;
+  --trf-border: #e2e8f0;
+  --trf-border-strong: #cbd5e1;
+  --trf-surface: #ffffff;
+  --trf-subtle: #f8fafc;
+  --trf-green: #15803d;
+  --trf-green-bg: #dcfce7;
+  --trf-amber: #b45309;
+  --trf-amber-bg: #fef3c7;
+  --trf-red: #b91c1c;
+  --trf-red-bg: #fee2e2;
+  --trf-radius: 16px;
+  --trf-radius-sm: 10px;
+  --trf-shadow: 0 4px 20px rgba(15, 23, 42, 0.07);
+}
+
+/* --------------------------------------------------------------------------
+   1. Page header
+   -------------------------------------------------------------------------- */
+.trf-page .trf-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.trf-page .trf-page-header h1 {
+  margin: 0 0 6px;
+  font-size: 1.6rem;
+  line-height: 1.25;
+  color: var(--trf-ink);
+}
+
+.trf-page .trf-page-header p {
+  margin: 0;
+  color: var(--trf-muted);
+  font-size: 0.95rem;
+  max-width: 68ch;
+}
+
+.trf-page-header-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+/* status pill + small meta chips */
+.trf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  background: var(--trf-subtle);
+  color: var(--trf-body);
+  border: 1px solid var(--trf-border);
+  white-space: nowrap;
+}
+
+.trf-chip svg {
+  flex-shrink: 0;
+}
+
+.trf-status-chip.is-pending {
+  background: var(--trf-amber-bg);
+  color: var(--trf-amber);
+  border-color: #fcd34d;
+}
+.trf-status-chip.is-approved {
+  background: var(--trf-green-bg);
+  color: var(--trf-green);
+  border-color: #86efac;
+}
+.trf-status-chip.is-revision {
+  background: var(--trf-red-bg);
+  color: var(--trf-red);
+  border-color: #fca5a5;
+}
+
+.trf-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   2. Cards & section headers
+   -------------------------------------------------------------------------- */
+.trf-page .trf-card {
+  background: var(--trf-surface);
+  border: 1px solid var(--trf-border);
+  border-radius: var(--trf-radius);
+  box-shadow: var(--trf-shadow);
+  padding: 26px 30px;
+  margin-bottom: 22px;
+}
+
+.trf-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 16px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--trf-border);
+}
+
+.trf-step {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--trf-navy);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trf-section-head h2 {
+  margin: 0;
+  font-size: 1.08rem;
+  color: var(--trf-ink);
+  line-height: 1.4;
+}
+
+.trf-section-head p {
+  margin: 5px 0 0;
+  font-size: 0.86rem;
+  color: var(--trf-muted);
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------------------------------
+   3. Grids — every column is a real grid track so rows line up
+   -------------------------------------------------------------------------- */
+.trf-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px 26px;
+}
+
+.trf-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.trf-span-2 {
+  grid-column: span 2;
+}
+
+/* Column wrapper used in the student details section */
+.trf-field-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.trf-field-group > .trf-subcard {
+  flex: 1 1 auto;
+}
+
+.trf-subcard {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 22px;
+  background: var(--trf-subtle);
+  border: 1px solid var(--trf-border);
+  border-radius: 12px;
+}
+
+.trf-subcard > h3 {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--trf-muted);
+  font-weight: 700;
+}
+
+.trf-subcard .trf-grid-2 {
+  gap: 16px 20px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Fields — identical markup for inputs, selects and textareas
+   -------------------------------------------------------------------------- */
+.trf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.trf-field > label,
+.trf-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--trf-body);
+  line-height: 1.35;
+}
+
+.trf-req {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.trf-optional {
+  color: var(--trf-faint);
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.trf-input,
+.trf-page .trf-select,
+.trf-page .trf-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--trf-ink);
+  background: #fff;
+  border: 1px solid var(--trf-border-strong);
+  border-radius: var(--trf-radius-sm);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  min-width: 0;
+}
+
+.trf-input::placeholder,
+.trf-textarea::placeholder {
+  color: var(--trf-faint);
+}
+
+.trf-input:hover,
+.trf-select:hover,
+.trf-textarea:hover {
+  border-color: #94a3b8;
+}
+
+.trf-input:focus,
+.trf-select:focus,
+.trf-textarea:focus {
+  outline: none;
+  border-color: var(--trf-blue);
+  box-shadow: 0 0 0 4px rgba(42, 114, 216, 0.15);
+}
+
+.trf-page .trf-textarea {
+  resize: vertical;
+  line-height: 1.6;
+  min-height: 120px;
+}
+
+.trf-page .trf-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 40px;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E');
+  background-repeat: no-repeat;
+  background-position: right 14px top 50%;
+  background-size: 0.65em auto;
+  cursor: pointer;
+}
+
+.trf-input[readonly],
+.trf-input:disabled,
+.trf-select:disabled {
+  background: #f1f5f9;
+  color: var(--trf-muted);
+  cursor: not-allowed;
+}
+
+.trf-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--trf-faint);
+  line-height: 1.45;
+}
+
+/* Let a field (and its control) stretch to fill the remaining column height */
+.trf-field.is-grow {
+  flex: 1 1 auto;
+}
+
+.trf-field.is-grow .trf-textarea {
+  flex: 1 1 auto;
+  min-height: 130px;
+}
+
+/* --- 4b. Radio option cards (project category) --- */
+.trf-radio-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trf-radio-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border: 1px solid var(--trf-border-strong);
+  border-radius: var(--trf-radius-sm);
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.92rem;
+  color: var(--trf-body);
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.trf-radio-card:hover {
+  border-color: #94a3b8;
+  background: var(--trf-subtle);
+}
+
+.trf-radio-card input[type='radio'] {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--trf-blue);
+  cursor: pointer;
+}
+
+.trf-radio-card.is-checked {
+  border-color: var(--trf-blue);
+  background: #eff6ff;
+  color: var(--trf-navy);
+  font-weight: 600;
+  box-shadow: 0 0 0 3px rgba(42, 114, 216, 0.12);
+}
+
+/* --------------------------------------------------------------------------
+   5. Project-detail boxes (the six boxes of section 3)
+   -------------------------------------------------------------------------- */
+.trf-field.is-textarea {
+  height: 100%;
+}
+
+.trf-field.is-textarea > label {
+  min-height: 2.7em; /* equalises one- and two-line labels so boxes align */
+  display: flex;
+  align-items: flex-start;
+}
+
+.trf-field.is-textarea .trf-textarea {
+  flex: 1 1 auto;
+  min-height: 170px;
+}
+
+/* --------------------------------------------------------------------------
+   6. Read-only detail tiles (lecturer review view)
+   -------------------------------------------------------------------------- */
+.trf-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 26px;
+}
+
+.trf-detail {
+  min-width: 0;
+}
+
+.trf-detail dt {
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--trf-faint);
+  margin-bottom: 5px;
+}
+
+.trf-detail dd {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--trf-ink);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.trf-detail dd.is-strong {
+  font-weight: 600;
+}
+
+/* the six grey boxes */
+.trf-detail-box {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 16px 18px;
+  background: var(--trf-subtle);
+  border: 1px solid var(--trf-border);
+  border-radius: 12px;
+  min-height: 150px;
+}
+
+.trf-detail-box h4 {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--trf-navy);
+}
+
+.trf-detail-box p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--trf-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.trf-detail-box p.is-empty {
+  color: var(--trf-faint);
+  font-style: italic;
+}
+
+.trf-detail-box p::-webkit-scrollbar {
+  width: 8px;
+}
+.trf-detail-box p::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+/* --------------------------------------------------------------------------
+   7. Banners (validation + status notices)
+   -------------------------------------------------------------------------- */
+.trf-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+}
+
+.trf-banner strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.trf-banner.is-error {
+  background: var(--trf-red-bg);
+  border-color: #fca5a5;
+  color: #7f1d1d;
+}
+
+.trf-banner.is-info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
+}
+
+.trf-banner.is-warning {
+  background: var(--trf-amber-bg);
+  border-color: #fcd34d;
+  color: #78350f;
+}
+
+.trf-banner.is-success {
+  background: var(--trf-green-bg);
+  border-color: #86efac;
+  color: #14532d;
+}
+
+/* --------------------------------------------------------------------------
+   8. Buttons & form actions
+   -------------------------------------------------------------------------- */
+.trf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: var(--trf-radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.trf-btn:focus-visible {
+  outline: 3px solid rgba(42, 114, 216, 0.35);
+  outline-offset: 2px;
+}
+
+.trf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.trf-btn-primary {
+  background: var(--trf-blue);
+  color: #fff;
+}
+
+.trf-btn-primary:hover:not(:disabled) {
+  background: var(--trf-blue-dark);
+}
+
+.trf-btn-ghost {
+  background: #fff;
+  color: var(--trf-body);
+  border-color: var(--trf-border-strong);
+}
+
+.trf-btn-ghost:hover:not(:disabled) {
+  background: var(--trf-subtle);
+  border-color: #94a3b8;
+  color: var(--trf-ink);
+}
+
+.trf-btn-sm {
+  padding: 8px 15px;
+  font-size: 0.85rem;
+}
+
+.trf-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--trf-border);
+}
+
+.trf-form-actions .trf-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trf-form-actions .trf-hint {
+  max-width: 46ch;
+}
+
+/* --------------------------------------------------------------------------
+   9. Approve / Needs-revision selector (lecturer decision cards)
+   -------------------------------------------------------------------------- */
+.trf-decision {
+  border: none;
+  padding: 0;
+  margin: 24px 0 0;
+}
+
+.trf-decision legend {
+  padding: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--trf-body);
+}
+
+.trf-decision .trf-hint {
+  margin: 6px 0 12px;
+}
+
+.trf-decision-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.trf-decision-option {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 17px;
+  border: 1.5px solid var(--trf-border-strong);
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.trf-decision-option:hover {
+  border-color: #94a3b8;
+  background: var(--trf-subtle);
+}
+
+/* keep the native radio for keyboard/a11y, hide it visually */
+.trf-decision-option input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+
+.trf-decision-option:focus-within {
+  outline: 3px solid rgba(42, 114, 216, 0.35);
+  outline-offset: 2px;
+}
+
+.trf-decision-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: var(--trf-subtle);
+  color: var(--trf-muted);
+  border: 1px solid var(--trf-border);
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.trf-decision-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.trf-decision-text strong {
+  font-size: 0.95rem;
+  color: var(--trf-ink);
+}
+
+.trf-decision-text small {
+  font-size: 0.8rem;
+  color: var(--trf-muted);
+  line-height: 1.45;
+}
+
+/* selected states */
+.trf-decision-option.is-approve.is-checked {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.14);
+}
+.trf-decision-option.is-approve.is-checked .trf-decision-icon {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+.trf-decision-option.is-approve.is-checked .trf-decision-text strong {
+  color: #14532d;
+}
+
+.trf-decision-option.is-revision.is-checked {
+  border-color: #dc2626;
+  background: #fef2f2;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.14);
+}
+.trf-decision-option.is-revision.is-checked .trf-decision-icon {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+.trf-decision-option.is-revision.is-checked .trf-decision-text strong {
+  color: #7f1d1d;
+}
+
+.trf-decision-option.is-invalid {
+  border-color: #dc2626;
+  background: #fff5f5;
+}
+
+.trf-decision-error {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--trf-red);
+}
+
+/* "reviewing as" line */
+.trf-reviewing-as {
+  margin: -6px 0 18px;
+  font-size: 0.85rem;
+  color: var(--trf-muted);
+}
+.trf-reviewing-as strong {
+  color: var(--trf-ink);
+}
+
+/* --------------------------------------------------------------------------
+   10. Toolbar: status filter + search (submission list)
+   -------------------------------------------------------------------------- */
+
+/* Lecturer-only supervision quota, sitting on the same toolbar row as the
+   status filters (right-hand side, with the search). */
+.trf-toolbar-trailing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.trf-quota-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--trf-border);
+  background: var(--trf-subtle);
+  color: var(--trf-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.trf-quota-chip strong {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--trf-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.trf-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--trf-border);
+}
+
+.trf-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.trf-toolbar-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--trf-body);
+}
+
+.trf-segmented {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trf-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--trf-border-strong);
+  background: #fff;
+  color: var(--trf-body);
+  font-size: 0.86rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.trf-seg:hover {
+  background: var(--trf-subtle);
+  border-color: #94a3b8;
+}
+
+.trf-seg:focus-visible {
+  outline: 3px solid rgba(42, 114, 216, 0.35);
+  outline-offset: 2px;
+}
+
+.trf-seg.is-active {
+  background: var(--trf-navy);
+  border-color: var(--trf-navy);
+  color: #fff;
+  font-weight: 600;
+}
+
+.trf-seg-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: var(--trf-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.trf-seg.is-active .trf-seg-count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.trf-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.trf-search input {
+  width: 260px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px 13px 10px 36px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--trf-ink);
+  border: 1px solid var(--trf-border-strong);
+  border-radius: var(--trf-radius-sm);
+  background: #fff;
+}
+
+.trf-search input:focus {
+  outline: none;
+  border-color: var(--trf-blue);
+  box-shadow: 0 0 0 4px rgba(42, 114, 216, 0.15);
+}
+
+.trf-search svg {
+  position: absolute;
+  left: 12px;
+  color: var(--trf-faint);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   11. Submission table
+   -------------------------------------------------------------------------- */
+.trf-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 6px;
+}
+
+.trf-page .trf-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trf-page .trf-table th {
+  text-align: left;
+  padding: 14px 12px;
+  font-size: 0.76rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--trf-muted);
+  white-space: nowrap;
+  border-bottom: 2px solid #eef2f7;
+}
+
+.trf-page .trf-table td {
+  padding: 15px 12px;
+  font-size: 0.92rem;
+  color: var(--trf-body);
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.trf-page .trf-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.trf-page .trf-table tbody tr:hover td {
+  background: var(--trf-subtle);
+}
+
+.trf-table .trf-col-name {
+  font-weight: 600;
+  color: var(--trf-ink);
+  white-space: nowrap;
+}
+
+.trf-table .trf-col-title {
+  max-width: 380px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trf-table .trf-col-date {
+  white-space: nowrap;
+  color: var(--trf-muted);
+}
+
+.trf-page .trf-table td.is-action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.trf-empty {
+  padding: 44px 20px;
+  text-align: center;
+  color: var(--trf-muted);
+}
+
+.trf-empty strong {
+  display: block;
+  color: var(--trf-ink);
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   12. Loading state
+   -------------------------------------------------------------------------- */
+.trf-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: var(--trf-muted);
+  font-size: 0.95rem;
+}
+
+.trf-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid #dbe3ec;
+  border-top-color: var(--trf-blue);
+  border-radius: 50%;
+  animation: trf-spin 0.7s linear infinite;
+}
+
+/* spinner sitting on a filled button */
+.trf-btn-primary .trf-spinner {
+  width: 15px;
+  height: 15px;
+  border-color: rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+}
+
+@keyframes trf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* back button row above the review header */
+.trf-back-row {
+  margin-bottom: 18px;
+}
+
+/* --------------------------------------------------------------------------
+   13. Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 1200px) {
+  .trf-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .trf-page .trf-card {
+    padding: 22px 20px;
+  }
+
+  .trf-grid-2,
+  .trf-detail-grid,
+  .trf-decision-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .trf-grid-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .trf-span-2 {
+    grid-column: span 1;
+  }
+
+  .trf-field.is-textarea > label {
+    min-height: 0;
+  }
+
+  .trf-toolbar,
+  .trf-toolbar-group {
+    align-items: stretch;
+  }
+
+  .trf-search input {
+    width: 100%;
+  }
+
+  .trf-page-header-side {
+    align-items: flex-start;
+  }
+
+  .trf-form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .trf-form-actions .trf-action-buttons {
+    flex-direction: column-reverse;
+  }
+
+  .trf-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trf-spinner {
+    animation-duration: 2s;
+  }
+}

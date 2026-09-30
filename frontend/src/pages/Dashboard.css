@@ -1,0 +1,209 @@
+/* --- File: src/pages/Dashboard.css (FINAL INTEGRATED & FIXED VERSION) --- */
+
+/* General Page Layout */
+.dashboard {
+  padding: 20px;
+}
+
+.welcome-header {
+  margin-bottom: 30px;
+}
+
+.welcome-header h1 {
+  margin: 0 0 5px 0;
+  color: #0F172A;
+}
+
+.welcome-header p {
+  margin: 0;
+  color: #64748B;
+}
+
+/* Filter Styles */
+.filters-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #E2E8F0;
+  margin-bottom: 20px;
+}
+
+.course-filter-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.course-filter-btn {
+  padding: 8px 16px;
+  border: 1px solid #cbd5e1;
+  background-color: #fff;
+  color: #334155;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.course-filter-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.course-filter-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+}
+
+/* Widget Styles */
+.widget-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.widget {
+  background-color: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #E2E8F0;
+}
+
+.widget h3 { /* This is a general style for h3 inside a widget */
+  margin-top: 0;
+  font-size: 16px;
+  color: #334155;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.widget p { margin: 0; color: #475569; }
+.status-submitted { color: #16A34A; font-weight: bold; }
+.checkmark { color: #16A34A; }
+.widget.alert button { margin-top: 15px; background-color: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+.metric { font-size: 36px; font-weight: bold; color: #0F172A; margin-bottom: 5px; }
+.widget span { font-size: 14px; color: #64748B; }
+
+/* Widget Header for Title + Button Layout */
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.widget-header h3 { /* Reset styles for h3 inside the specific header */
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.download-button {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.download-button:hover { background-color: #0056b3; }
+
+
+/* --- 【TABLE STYLES ARE NOW MERGED AND FIXED HERE】 --- */
+
+.widget .timetable-container {
+  overflow-x: auto;
+  margin-top: 0;
+}
+
+.widget .schedule-table, /* Target the table from PresentSchedulePage */
+.widget .timetable-container table /* Target the table from CoordinatorDashboard */ {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  color: #333;
+  font-size: 14px;
+}
+
+/* --- 【THE CORE FIX FOR BORDERS】 --- */
+/* This rule now applies to ALL tables inside a widget */
+.widget .schedule-table th, 
+.widget .schedule-table td,
+.widget .timetable-container th, 
+.widget .timetable-container td {
+  padding: 12px 15px;
+  /* Use a clear, visible border color with high priority */
+  border: 1px solid #dee2e6 !important;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.widget .schedule-table thead tr,
+.widget .timetable-container thead tr {
+  background-color: #f2f2f2; /* A consistent header background */
+}
+
+.widget .schedule-table thead th,
+.widget .timetable-container thead th {
+  font-weight: bold;
+  color: #333;
+}
+
+.widget .schedule-table tbody tr:nth-child(even),
+.widget .timetable-container tbody tr:nth-child(even) {
+  background-color: #f9f9f9; /* Subtle row striping */
+}
+
+
+/* --- Student List: FYP stage pill -----------------------------------------
+   Scoped to the Student List table (`.widget .schedule-table`) so it reaches
+   nothing else on the page — the stage filters and every other indicator are
+   untouched by anything below.
+
+   Two things made this pill wrong before:
+     1. `.widget span` (specificity 0,1,1) colours every span inside a widget
+        and out-specified the shared `.fyp-stage-tag` (0,1,0), so the label came
+        out grey on blue.
+     2. The old rules here re-declared the pill with a 12px uppercase font and a
+        12px radius, but the shared box is 78x34 with `inline-flex` centring.
+        Mixing the two left small text crammed into the corner of a big box.
+
+   The values below therefore repeat the shared pill exactly (`.fyp-stage-tag`
+   in TeammateLecturer.css) so a stage looks the same here as in the lecturer
+   view, and the higher specificity only exists to win point 1 back. Change the
+   pill in both places if you change its size. */
+.widget .schedule-table .fyp-stage-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: normal;
+  white-space: nowrap;
+  word-break: keep-all;
+  color: #fff;
+  background-color: #64748b; /* readable fallback for a stage with no variant */
+}
+
+.widget .schedule-table .fyp-stage-fyp1 { background-color: #3b82f6; /* Blue */ }
+.widget .schedule-table .fyp-stage-fyp2 { background-color: #16a34a; /* Green */ }
+.widget .schedule-table .fyp-stage-proposal { background-color: #6f42c1; /* Purple */ }

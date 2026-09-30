@@ -1,0 +1,783 @@
+/* --- src/components/ui.css ---------------------------------------------------
+   Shared UI-helpers used across FYPHub.
+
+   Everything here is deliberately quiet: helper text is small and muted, hints
+   are opt-in on hover/focus, and nothing competes with the page's own content.
+   ---------------------------------------------------------------------------- */
+
+/* ===========================================================================
+   1. Page title + subtitle
+   =========================================================================== */
+.ui-page-subtitle {
+  margin: 6px 0 0 0;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 78ch;
+}
+
+.ui-page-subtitle strong {
+  color: #334155;
+}
+
+/* The per-page stylesheets set a larger size for header paragraphs, so these
+   selectors are deliberately specific enough to keep the subtitle consistent. */
+.main-content header p.ui-page-subtitle,
+.main-content .welcome-header p.ui-page-subtitle {
+  margin: 6px 0 0 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+/* A quieter, secondary line that sits under a card/section title. */
+.ui-sub {
+  margin: 4px 0 0 0;
+  color: #6c757d;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+/* Small helper text used at the end of a form field or table. */
+.ui-hint {
+  display: block;
+  margin: 8px 0 0 0;
+  color: #6c757d;
+  font-size: 0.83rem;
+  line-height: 1.5;
+}
+
+.ui-hint.is-tight {
+  margin-top: 4px;
+}
+
+/* Section heading row: title + subtitle + optional right side slot. */
+.ui-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.ui-section-head h2,
+.ui-section-head h3 {
+  margin: 0;
+}
+
+/* ===========================================================================
+   2. Glossary term tooltip (Term)
+   =========================================================================== */
+/* The wrapper stays inline so a defined term never disturbs the baseline of the
+   sentence around it (an inline-flex wrapper used to sit a few pixels low). */
+.ui-tip {
+  position: relative;
+  display: inline;
+}
+
+.ui-tip-bubble {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: max-content;
+  max-width: 290px;
+  padding: 9px 12px;
+  background-color: #1e293b;
+  color: #f1f5f9;
+  font-size: 0.78rem;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.5;
+  text-align: left;
+  border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 60;
+}
+
+.ui-tip-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1e293b;
+}
+
+.ui-tip:hover .ui-tip-bubble,
+.ui-tip:focus .ui-tip-bubble,
+.ui-tip:focus-within .ui-tip-bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Wide tooltip for a longer explanation. */
+.ui-tip.is-wide .ui-tip-bubble {
+  max-width: 360px;
+}
+
+/* ===========================================================================
+   3. Glossary term (dotted underline + shared bubble)
+   =========================================================================== */
+.ui-term {
+  border-bottom: 1px dotted #94a3b8;
+  cursor: help;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* ===========================================================================
+   4. Status badges + status legend
+   =========================================================================== */
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.ui-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
+}
+
+.ui-badge.is-neutral { background-color: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+.ui-badge.is-info    { background-color: #e7f0ff; color: #0b4ea2; border-color: #cfe1ff; }
+.ui-badge.is-warn    { background-color: #fff4d6; color: #8a6100; border-color: #ffe6a8; }
+.ui-badge.is-success { background-color: #e3f6e9; color: #14663a; border-color: #c6ecd3; }
+.ui-badge.is-danger  { background-color: #fdeaea; color: #9b2226; border-color: #f8cfd1; }
+
+/* Legend used above tables / grids that rely on colour coding. */
+.ui-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  background-color: #f8fafc;
+  border: 1px solid #e9edf3;
+  border-radius: 8px;
+}
+
+.ui-legend-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.ui-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.ui-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  flex-shrink: 0;
+}
+
+/* ===========================================================================
+   5. Callout / inline notice
+   =========================================================================== */
+.ui-callout {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  border-left-width: 4px;
+  background-color: #f8fafc;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #334155;
+}
+
+.ui-callout-icon {
+  font-size: 1rem;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.ui-callout-body strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #1e293b;
+}
+
+.ui-callout.is-info    { background-color: #f4f8ff; border-color: #d6e4ff; border-left-color: #0d6efd; }
+.ui-callout.is-success { background-color: #f2fbf5; border-color: #cdeed9; border-left-color: #198754; }
+.ui-callout.is-warn    { background-color: #fffbf0; border-color: #fbe6b5; border-left-color: #f0ad4e; }
+.ui-callout.is-danger  { background-color: #fef6f6; border-color: #f8d3d5; border-left-color: #dc3545; }
+.ui-callout.is-next    { background-color: #f6f5ff; border-color: #ddd8fb; border-left-color: #6f42c1; }
+.ui-callout.is-plain   { background-color: #f8fafc; border-left-color: #94a3b8; }
+
+/* When a callout follows other content inside the same card. */
+.ui-callout.is-tight-top { margin-top: 20px; margin-bottom: 0; }
+
+/* ===========================================================================
+   6. Step trail (process indicator)
+   =========================================================================== */
+.ui-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  margin-bottom: 22px;
+  background-color: #fff;
+  border: 1px solid #e9edf3;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.ui-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 6px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.ui-step-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #e9edf3;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ui-step.is-done { color: #14663a; }
+.ui-step.is-done .ui-step-index { background-color: #d1f0dd; color: #14663a; }
+
+.ui-step.is-current {
+  background-color: #eef4ff;
+  color: #0b4ea2;
+  font-weight: 600;
+}
+.ui-step.is-current .ui-step-index { background-color: #0d6efd; color: #fff; }
+
+.ui-step-sep {
+  color: #cbd5e1;
+  font-size: 0.75rem;
+}
+
+/* ===========================================================================
+   7. Empty state
+   =========================================================================== */
+.ui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 38px 24px;
+  text-align: center;
+  color: #64748b;
+}
+
+.ui-empty-icon {
+  font-size: 1.9rem;
+  line-height: 1;
+  margin-bottom: 6px;
+  opacity: 0.75;
+}
+
+.ui-empty strong {
+  color: #334155;
+  font-size: 1rem;
+}
+
+.ui-empty p {
+  margin: 0;
+  font-size: 0.88rem;
+  max-width: 52ch;
+  line-height: 1.55;
+}
+
+.ui-empty-action {
+  margin-top: 12px;
+}
+
+/* Generic small key/value row used in detail panels. */
+.ui-facts {
+  display: grid;
+  gap: 14px 28px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.ui-fact-label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 3px;
+}
+
+.ui-fact-value {
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+/* Thin progress meter used for quotas and milestone completion. */
+.ui-meter {
+  position: relative;
+  width: 100%;
+  min-width: 90px;
+  height: 7px;
+  background-color: #e9edf3;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ui-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background-color: #0d6efd;
+  transition: width 0.3s ease;
+}
+
+.ui-meter-fill.is-success { background-color: #198754; }
+.ui-meter-fill.is-warn    { background-color: #f0ad4e; }
+.ui-meter-fill.is-danger  { background-color: #dc3545; }
+
+.ui-meter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ui-meter-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* ===========================================================================
+   8. Sticky live total (grading screen)
+   =========================================================================== */
+.ui-live-total {
+  /* Sticks just below the portal header so totals stay visible while scrolling
+     through a long rubric. */
+  position: sticky;
+  top: 72px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #0d6efd;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.ui-live-total-figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 22px;
+}
+
+.ui-live-total-item {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.ui-live-total-item span {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.ui-live-total-item strong {
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.ui-live-total-item strong.is-grade {
+  color: #0d6efd;
+}
+
+/* ===========================================================================
+   9. Help centre (opened from the header "?" button)
+   =========================================================================== */
+.ui-help-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.32);
+  z-index: 200;
+}
+
+.ui-help-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(430px, 94vw);
+  background-color: #ffffff;
+  box-shadow: -10px 0 34px rgba(15, 23, 42, 0.18);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+}
+
+.ui-help-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid #e9edf3;
+}
+
+.ui-help-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.ui-help-head p {
+  margin: 4px 0 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.ui-help-close {
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ui-help-close:hover { background: #e2e8f0; }
+
+.ui-help-body {
+  padding: 18px 22px 26px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.ui-help-section {
+  margin-bottom: 26px;
+}
+
+.ui-help-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.ui-help-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: help-step;
+}
+
+.ui-help-steps li {
+  position: relative;
+  padding: 0 0 14px 30px;
+  font-size: 0.88rem;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.ui-help-steps li::before {
+  counter-increment: help-step;
+  content: counter(help-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #eef4ff;
+  color: #0b4ea2;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-help-steps li:last-child { padding-bottom: 0; }
+
+.ui-help-glossary dt {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.88rem;
+  margin-top: 12px;
+}
+
+.ui-help-glossary dt:first-child { margin-top: 0; }
+
+.ui-help-glossary dd {
+  margin: 3px 0 0 0;
+  font-size: 0.84rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.ui-help-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ui-help-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e9edf3;
+  border-radius: 9px;
+  background-color: #fff;
+  color: #334155;
+  font-size: 0.87rem;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.ui-help-link:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.ui-help-link small {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+/* Header trigger button */
+.ui-help-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background-color: #fff;
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ui-help-trigger:hover {
+  background-color: #eef4ff;
+  border-color: #0d6efd;
+  color: #0b4ea2;
+}
+
+/* ===========================================================================
+   10. Header context chip ("viewing as ...")
+   =========================================================================== */
+.ui-context {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.ui-context-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.ui-context-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-context-meta {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+/* ===========================================================================
+   12. Verified-row tint (milestone table)
+   =========================================================================== */
+.milestone-table tbody tr.is-verified { background-color: #f4fbf6; }
+.milestone-table tbody tr.is-verified td:first-child { box-shadow: inset 3px 0 0 #198754; }
+
+/* Unread feedback is drawn with a quiet blue edge instead of extra badges. */
+.feedback-item.is-unread {
+  border-left: 4px solid #0d6efd;
+  background-color: #fbfdff;
+}
+.feedback-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Secondary line inside a report summary card. */
+.report-summary-card small {
+  display: block;
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 0.76rem;
+}
+
+/* ===========================================================================
+   13. Weight check line (rubric editor)
+   =========================================================================== */
+.ui-weight-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 10px 0;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  background-color: #f2fbf5;
+  border: 1px solid #cdeed9;
+  color: #14663a;
+}
+
+.ui-weight-check .ui-badge-dot { flex-shrink: 0; }
+
+.ui-weight-check.is-warn {
+  background-color: #fffbf0;
+  border-color: #fbe6b5;
+  color: #8a6100;
+}
+
+/* ===========================================================================
+   14. Small shared buttons (used where a page has no local button styles)
+   =========================================================================== */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: #fff;
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ui-btn:hover:not(:disabled) { background-color: #f1f5f9; border-color: #94a3b8; }
+.ui-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.ui-btn.is-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: #fff;
+}
+.ui-btn.is-primary:hover:not(:disabled) { background-color: #0b5ed7; border-color: #0b5ed7; }
+
+.ui-btn.is-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+/* These two classes have no styles of their own (My Availability and Timetable
+   Scheduling). They used to be painted by the rubrics editor's global `button`
+   rule; now that the rule is scoped, keep them looking exactly as they did. */
+.save-button,
+.cancel-button {
+  background: #0f62fe;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.save-button:hover:not(:disabled),
+.cancel-button:hover:not(:disabled) { background: #0b4fd0; }
+
+/* A text link rendered as a button, for "open the full page" style actions. */
+.ui-link-btn {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #0d6efd;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.ui-link-btn:hover { color: #0b5ed7; }
+
+/* A link button that follows a sentence keeps a small gap from the full stop.
+   JSX drops the newline before the tag, so the space has to come from here as
+   well as the explicit {' '} in the markup. The gap is deliberately tiny so a
+   link that wraps to the next line still starts flush left. */
+.ui-fact-value .ui-link-btn,
+.ui-sub + .ui-link-btn { margin-left: 4px; }
+
+@media (max-width: 720px) {
+  .ui-context-meta { display: none; }
+  .ui-help-trigger span.ui-help-trigger-label { display: none; }
+}

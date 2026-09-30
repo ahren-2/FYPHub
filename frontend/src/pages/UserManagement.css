@@ -1,0 +1,318 @@
+/* --- File: src/pages/UserManagement.css (新建) --- */
+
+/* 页面顶部工具栏 */
+.page-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0 20px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+/* 角色筛选器样式 */
+.role-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 工具栏右侧的操作按钮 */
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.role-filters span {
+    font-weight: 500;
+    color: #495057;
+}
+
+.role-filters button {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.role-filters button:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+}
+
+.role-filters button.active {
+    background-color: #1e293b;
+    color: #fff;
+    border-color: #1e293b;
+}
+
+/* 角色标签样式 */
+.role-tag {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.role-student { background-color: #e0f2fe; color: #0c4a6e; }
+.role-lecturer { background-color: #dcfce7; color: #166534; }
+.role-coordinator { background-color: #fee2e2; color: #991b1b; }
+
+/* 弹窗 (Modal) 样式 */
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+.modal-header h2 { margin: 0; }
+.modal-header span { font-size: 1.8rem; cursor: pointer; color: #888; }
+.modal-body p { margin: 0 0 15px 0; color: #555; }
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.schedule-table.bordered th,
+.schedule-table.bordered td {
+  text-align: left !important;
+  border: 1px solid #e9ecef;
+}
+
+.schedule-table.bordered th {
+  background-color: #f8f9fa;
+}
+
+/* 【新增】Action 列的按钮样式 */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+.btn-icon {
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+.btn-icon.view { background-color: #e9ecef; border-color: #ced4da; color: #1e293b; }
+.btn-icon.view:hover { background-color: #dee2e6; }
+.btn-icon.edit { background-color: #e7f1ff; border-color: #b6d4fe; color: #0b4fd0; }
+.btn-icon.edit:hover { background-color: #d7e7ff; color: #0b4fd0; }
+.btn-icon.delete { background-color: #f8d7da; border-color: #f5c2c7; color: #991b1b; }
+.btn-icon.delete:hover { background-color: #f1b0b7; color: #7f1d1d; }
+
+/* Protected rows (you, and other coordinators/administrators). */
+.btn-icon:disabled {
+    background-color: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.btn-icon:disabled:hover {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+}
+
+/* The row icons are Feather line icons, so keep them aligned with the label. */
+.btn-icon svg { flex-shrink: 0; width: 14px; height: 14px; }
+
+/* 【新增】权限转移按钮的危险样式 */
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 【新增】用户详情弹窗的特定样式 */
+.user-details p {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f1f1;
+    padding: 12px 0;
+    margin: 0;
+}
+.user-details p strong { color: #555; }
+
+/* ===========================================================================
+   Create / edit profile form
+   =========================================================================== */
+.form-modal {
+    max-width: 620px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-modal form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.form-modal .modal-body {
+    overflow-y: auto;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-field.span-2 { grid-column: 1 / -1; }
+
+.form-field label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.form-field input,
+.form-field select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: #1e293b;
+    background-color: #fff;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+}
+
+.required-mark { color: #dc3545; }
+
+.form-hint { margin: 2px 0 0 0 !important; }
+
+.form-error {
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    border: 1px solid #f5c2c7;
+    border-left: 4px solid #dc3545;
+    border-radius: 8px;
+    background-color: #fdf2f3;
+    color: #842029;
+    font-size: 0.86rem;
+    white-space: pre-line;
+}
+
+/* Password box with the show/hide eye */
+.password-field {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.password-field input { flex: 1 1 auto; }
+
+.password-field input.is-readonly {
+    background-color: #f8f9fa;
+    color: #475569;
+    letter-spacing: 0.06em;
+}
+
+/* The eye sits on the input's own background, so no box of its own. */
+.password-toggle {
+    flex: 0 0 auto;
+    width: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #475569;
+    font-size: 1.05rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.password-toggle:hover { background-color: #f1f5f9; border-color: #94a3b8; color: #1e293b; }
+
+/* Password row inside the read-only details modal */
+.user-details-password {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-details-password .password-value {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+}
+
+.user-details-password .password-toggle {
+    width: 32px;
+    height: 28px;
+    font-size: 0.95rem;
+}
+
+/* "You are changing this password" notice */
+.form-warning {
+    padding: 11px 14px;
+    border: 1px solid #fbe6b5;
+    border-left: 4px solid #f0ad4e;
+    border-radius: 8px;
+    background-color: #fffbf0;
+    color: #8a6100;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.form-warning strong { color: #7a5600; }
+
+@media (max-width: 560px) {
+    .form-grid { grid-template-columns: minmax(0, 1fr); }
+}

@@ -1,0 +1,75 @@
+/* --- File: src/pages/MyAvailabilityPage.css --- */
+.grid-timetable-page { padding: 20px; background-color: #fff; }
+.welcome-header { margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+.date-selector { margin-bottom: 20px; display: flex; gap: 10px; }
+.date-selector button {
+  padding: 10px 25px; border: 1px solid #ddd; background: white; color: #334155;
+  cursor: pointer; border-radius: 20px; font-weight: 500; transition: all 0.3s;
+}
+.date-selector button.active { background-color: #007bff; color: white; border-color: #007bff; box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
+
+.timetable-grid {
+  display: grid;
+  grid-template-columns: 120px repeat(var(--venue-count, 4), 1fr);
+  border: 1px solid #dee2e6;
+  background-color: white;
+}
+
+.header-cell, .slot-cell {
+  border: 1px solid #dee2e6; padding: 12px; min-height: 65px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+.header-cell { background-color: #f8f9fa; font-weight: bold; color: #495057; }
+.time-header { background-color: #f8f9fa; border-right: 2px solid #dee2e6; }
+
+.slot-cell.available { cursor: pointer; color: #28a745; font-size: 0.8rem; }
+.slot-cell.available:hover { background-color: #f1fcf4; }
+.available-text { opacity: 0.6; }
+
+/* 已占用格子的红色样式 */
+.slot-cell.booked {
+  background-color: #fff5f5;
+  border-left: 4px solid #ff4d4f;
+  cursor: not-allowed;
+}
+
+.booking-info { text-align: center; color: #cf1322; }
+.booking-info strong { display: block; font-size: 0.9rem; margin-bottom: 2px; }
+.booking-sub { font-size: 0.7rem; color: #f5222d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+
+/* Modal 增强样式 */
+.modal-backdrop {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-content {
+  background: white; padding: 30px; border-radius: 12px; width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.modal-summary { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+.modal-summary p { margin: 5px 0; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+.form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+.slot-cell.booked-mine {
+  background-color: #e6f7ff;
+  border-left: 4px solid #1890ff;
+  color: #0050b3;
+}
+
+/* 别人的预约：浅灰色/浅红色，代表占用 */
+.slot-cell.booked-others {
+  background-color: #fafafa;
+  border-left: 4px solid #d9d9d9;
+  color: #8c8c8c;
+  cursor: not-allowed;
+}
+
+.occupied-text {
+  font-weight: bold;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}

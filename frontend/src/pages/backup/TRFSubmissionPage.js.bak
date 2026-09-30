@@ -1,0 +1,243 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../api';
+import './TeammateStudent.css'; // 确保你已经粘贴了之前帮你整合的 CSS
+
+function TRFSubmissionPage() {
+  const navigate = useNavigate();
+  const [lecturers, setLecturers] = useState([]);
+  const [loading, setLoading] = useState(true); // 【修改】初始加载状态
+  const [isSubmitting, setIsSubmitting] = useState(false); // 【新增】提交按钮的加载状态
+  const [formData, setFormData] = useState({
+    student_name: '',
+    student_id_no: '',
+    phone_no: '',
+    programme: '',
+    semester: '',
+    project_category: 'system-dev',
+    proposed_project_title: '',
+    supervisor_id: '',
+    co_supervisor_id: '',
+    // 补全 Section 3 的 6 个大框
+    detail_description: '',
+    detail_problem: '',
+    detail_value: '',
+    detail_scope: '',
+    detail_similar_system: '',
+    detail_features: ''
+  });
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+        try {
+            // 并行获取讲师列表、当前用户信息、以及可能已存在的提交记录
+            const [lecturersRes, userRes, submissionRes] = await Promise.all([
+                api.get('/eligible-supervisors/'),
+                api.get('/user/me/'),
+                api.get('/submissions/') // 这个接口只会返回当前学生自己的提交
+            ]);
+            
+            setLecturers(lecturersRes.data);
+            
+            const currentUser = userRes.data;
+            const existingSubmission = submissionRes.data.length > 0 ? submissionRes.data[0] : null;
+
+            if (existingSubmission) {
+                // 如果学生已经提交过，用已有的数据填充整个表单
+                setFormData({
+                    ...existingSubmission,
+                    // 后端返回的是 supervisor ID, 我们需要把它赋值给 supervisor_id 以便下拉框正确显示
+                    supervisor_id: existingSubmission.supervisor || '',
+                    co_supervisor_id: existingSubmission.co_supervisor || ''
+                });
+            } else {
+                // 如果是第一次提交，只预填姓名和学号
+                setFormData(prev => ({
+                    ...prev,
+                    student_name: currentUser.full_name || '',
+                    student_id_no: currentUser.username || ''
+                }));
+            }
+
+        } catch (error) {
+            console.error("Failed to load TRF page data:", error);
+            alert("Error loading page data. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    fetchInitialData();
+  }, []); // 这个 effect 只在页面加载时运行一次
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  // 【核心修改 #2】: 升级 handleSubmit，支持创建和更新
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const submissionId = formData.id; // 如果是编辑，formData 中会有 id
+      
+      // 准备要发送给后端的数据
+      const payload = {
+          ...formData,
+          supervisor: formData.supervisor_id,
+          co_supervisor: formData.co_supervisor_id || null,
+      };
+      // 清理掉前端专用的字段
+      delete payload.supervisor_id;
+      delete payload.co_supervisor_id;
+      
+      if (submissionId) {
+          // 如果有 ID，说明是更新操作，使用 PUT 方法
+          await api.put(`/submissions/${submissionId}/`, payload);
+          alert("TRF updated successfully!");
+      } else {
+          // 如果没有 ID，说明是新建操作，使用 POST 方法
+          await api.post('/submissions/', payload);
+      }
+      navigate('/dashboard'); // 成功后统一跳转回 Dashboard
+      
+    } catch (err) {
+      console.error("Submission failed:", err.response?.data || err);
+      alert("Submission failed. Please check your data and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+      return <div className="main-content">Loading TRF Form...</div>
+  }
+
+  return (
+    <div className="main-content">
+      <header>
+        <h1>Title Registration Form (Final Year Project)</h1>
+        <p>Please fill in all the required details as per the official TRF document.</p>
+      </header>
+
+      <div className="card trf-form-container">
+        <form onSubmit={handleSubmit}>
+          
+          {/* === Section 1: Details of Student === */}
+          <div className="form-section">
+            <h4>Details of Student</h4>
+            <div className="trf-grid">
+              {/* 左侧学生信息 */}
+              <div className="grid-col">
+                <div className="form-group-inline">
+                  <label>Student Name:</label>
+                  <input type="text" name="student_name" value={formData.student_name} onChange={handleChange} required />
+                </div>
+                <div className="form-group-inline">
+                  <label>Student ID:</label>
+                  <input type="text" name="student_id_no" value={formData.student_id_no} onChange={handleChange} required />
+                </div>
+                <div className="form-group-inline">
+                  <label>Phone Num:</label>
+                  <input type="text" name="phone_no" value={formData.phone_no} onChange={handleChange} />
+                </div>
+                <div className="form-group-inline">
+                  <label>Programme:</label>
+                  <input type="text" name="programme" value={formData.programme} onChange={handleChange} required />
+                </div>
+                <div className="form-group-inline">
+                  <label>Semester:</label>
+                  <input type="text" name="semester" value={formData.semester} onChange={handleChange} required />
+                </div>
+              </div>
+
+              {/* 右侧项目信息 */}
+              <div className="grid-col">
+                <div className="form-group">
+                  <label>Project Category (tick one):</label>
+                  <div className="radio-group">
+                    <label>
+                      <input type="radio" name="project_category" value="system-dev" checked={formData.project_category === 'system-dev'} onChange={handleChange} /> System/Application Development
+                    </label>
+                    <label>
+                      <input type="radio" name="project_category" value="research" checked={formData.project_category === 'research'} onChange={handleChange} /> Research-Based
+                    </label>
+                    <label>
+                      <input type="radio" name="project_category" value="hybrid" checked={formData.project_category === 'hybrid'} onChange={handleChange} /> Hybrid (Research + Development)
+                    </label>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Proposed Project Title:</label>
+                  <textarea name="proposed_project_title" rows="4" value={formData.proposed_project_title} onChange={handleChange} required></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* === Section 2: Details of Supervisor === */}
+          <div className="form-section">
+            <h4>Details of Supervisor</h4>
+            <div className="trf-grid">
+              <div className="form-group">
+                <label>Name:</label>
+                <select name="supervisor_id" value={formData.supervisor_id} onChange={handleChange} required>
+                  <option value="">-- Please choose a supervisor --</option>
+                  {lecturers.map(l => <option key={l.id} value={l.id}>{l.full_name}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Details of Co-Supervisor (optional):</label>
+                <select name="co_supervisor_id" value={formData.co_supervisor_id} onChange={handleChange}>
+                  <option value="">-- None --</option>
+                  {lecturers.map(l => <option key={l.id} value={l.id}>{l.full_name}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* === Section 3: Project Details (The 6 boxes) === */}
+          <div className="form-section">
+            <h4>Project Details (*Fill in bullet points in 1 page ONLY)</h4>
+            <div className="trf-grid-3-col">
+              <div className="form-group">
+                <label>Project Title & Short Description</label>
+                <textarea name="detail_description" rows="12" placeholder="• Your project title...&#10;• A short summary..." value={formData.detail_description} onChange={handleChange}></textarea>
+              </div>
+              <div className="form-group">
+                <label>Current Problem/Challenges</label>
+                <textarea name="detail_problem" rows="12" placeholder="• What is the main problem..." value={formData.detail_problem} onChange={handleChange}></textarea>
+              </div>
+              <div className="form-group">
+                <label>Value Brought by Project</label>
+                <textarea name="detail_value" rows="12" placeholder="• How does it solve the problem..." value={formData.detail_value} onChange={handleChange}></textarea>
+              </div>
+              <div className="form-group">
+                <label>Scope (Target user, tools, etc.)</label>
+                <textarea name="detail_scope" rows="12" placeholder="• Target users are..." value={formData.detail_scope} onChange={handleChange}></textarea>
+              </div>
+              <div className="form-group">
+                <label>Similar System/Research</label>
+                <textarea name="detail_similar_system" rows="12" placeholder="• Existing system A does..." value={formData.detail_similar_system} onChange={handleChange}></textarea>
+              </div>
+              <div className="form-group">
+                <label>Proposed Project Features</label>
+                <textarea name="detail_features" rows="12" placeholder="• Feature 1: User login..." value={formData.detail_features} onChange={handleChange}></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'right' }}>
+            <button type="submit" className="btn-submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting...' : 'Submit Form'}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default TRFSubmissionPage;

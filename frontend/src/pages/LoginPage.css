@@ -1,0 +1,157 @@
+/* src/pages/LoginPage.css - New Dark Theme */
+.login-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  /* 背景图可以保留，深色主题下效果也很好 */
+  background: url('UTS.jpeg') no-repeat center center/cover;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* 在背景图上加一个深色蒙版，让白色表单更突出 */
+.login-page-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(15, 23, 42, 0.7); /* Navy颜色的70%透明度蒙版 */
+}
+
+.login-form-wrapper {
+  /* 表单本身使用浅色，与深色背景形成对比 */
+  background-color: white; 
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  z-index: 1; /* 确保表单在蒙版之上 */
+}
+
+.login-logo {
+  width: 150px;
+  margin: 0 auto 20px auto;
+  filter: brightness(1.1); /* 让logo在深色背景下稍微亮一点 */
+}
+
+.login-title {
+  color: #0F172A; /* Navy 标题 */
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 26px;
+  text-align: left;
+}
+
+.login-error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background-color: #fdeaea;
+  border: 1px solid #f8cfd1;
+  color: #9b2226;
+  font-size: 0.85rem;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.login-help {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  border: 1px solid #e9edf3;
+  text-align: left;
+  font-size: 0.83rem;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.login-help p { margin: 0 0 10px 0; }
+.login-help p:last-child { margin-bottom: 0; }
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-input {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+.roles-container {
+  text-align: left;
+  margin-top: 10px;
+}
+
+.role-label {
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.role-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #333;
+}
+
+.role-options label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.role-options input[type="radio"] {
+  margin-right: 10px;
+}
+
+.login-button-primary {
+  /* 主按钮使用Navy和Night Gray */
+  background-color: #0F172A; /* Navy 背景 */
+  color: #E2E8F0; /* Night Gray 文字 */
+  padding: 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 20px;
+}
+
+.login-button-primary:hover {
+  background-color: #1e293b; /* 悬停时颜色变亮一点 */
+}
+
+.login-button-secondary {
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: auto;
+  transition: background-color 0.3s;
+}
+
+.login-button-secondary:hover {
+  background-color: #ced4da;
+}

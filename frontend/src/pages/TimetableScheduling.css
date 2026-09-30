@@ -1,0 +1,101 @@
+/* src/pages/TimetableScheduling.css */
+
+.scheduling-container {
+  padding: 20px;
+}
+
+/* 调整卡片容器布局 */
+.scheduling-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 左右等宽 */
+  gap: 25px;
+  margin-top: 20px;
+}
+
+/* 自动排程按钮所在的卡片占满全宽 */
+.full-width-widget {
+  grid-column: span 2;
+  text-align: center;
+  background-color: #f0f7ff; /* 浅蓝色背景，突出重点 */
+  border: 1px dashed #1890ff;
+  padding: 40px !important;
+}
+
+/* 日期列表样式 */
+.date-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 15px;
+  max-height: 300px;
+  overflow-y: auto; /* 日期多时可滚动 */
+}
+
+.date-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  transition: all 0.2s;
+}
+
+.date-item:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.date-info {
+  font-weight: 600;
+  color: #333;
+}
+
+/* 删除按钮样式 */
+.remove-btn {
+  background-color: #fff1f0;
+  color: #ff4d4f;
+  border: 1px solid #ffa39e;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.remove-btn:hover {
+  background-color: #ff4d4f;
+  color: white;
+}
+
+/* 自动排程的大按钮 */
+.run-scheduler-btn {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  border: none;
+  padding: 15px 45px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(24, 144, 255, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 20px;
+}
+
+.run-scheduler-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
+}
+
+.run-scheduler-btn:active {
+  transform: translateY(0);
+}
+
+.run-scheduler-btn.clear-btn {
+  background: linear-gradient(135deg, #ff7875 0%, #f5222d 100%);
+}
+.run-scheduler-btn.notify-btn {
+  background: linear-gradient(135deg, #fa8c16 0%, #d46b08 100%);
+}

@@ -1,0 +1,538 @@
+/* ==========================================================================
+   TeammateLecturer.css - 整合讲师/考官端所有业务样式
+   ========================================================================== */
+
+/* --- 1. 基础卡片与布局 --- */
+.main-content {
+    padding: 30px;
+    text-align: left;
+}
+
+.card {
+    background-color: #ffffff;
+    padding: 25px 30px;
+    border-radius: 16px; /* 采用考官端的 16px 大圆角 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+    border: 1px solid #edf2f7;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+}
+
+/* --- 2. 专业表格样式 --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+table th {
+    text-align: left;
+    padding: 15px 10px;
+    color: #1A3E5F; /* 采用主题深蓝色 */
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid #f1f4f8;
+    font-weight: 600;
+}
+
+table td {
+    padding: 15px 10px;
+    border-bottom: 1px solid #f1f4f8;
+    font-size: 0.95rem;
+    color: #4a5568;
+}
+
+table tr:last-child td {
+    border-bottom: none;
+}
+
+/* --- 3. 状态标签 (Status Badges) --- */
+.status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+.status.submitted { background-color: #d1e7dd; color: #0f5132; }
+.status.pending, .status.pending-review { background-color: #fff3cd; color: #856404; }
+.status.revision { background-color: #f8d7da; color: #842029; }
+.status.approved, .status.reviewed { background-color: #198754; color: #ffffff; }
+
+/* --- 4. 按钮样式 --- */
+.btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.85rem;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-review {
+    background-color: #1A3E5F;
+    color: #ffffff;
+}
+
+.btn-review:hover {
+    background-color: #2A72D8;
+}
+
+.btn-view {
+    background-color: transparent;
+    color: #1A3E5F;
+    border: 1px solid #1A3E5F;
+}
+
+.btn-view:hover {
+    background-color: #f0f4f8;
+}
+
+/* --- 5. 评审页面专用 (Give Feedback) --- */
+.detail-item {
+    margin-bottom: 15px;
+}
+
+.detail-item strong {
+    display: block;
+    color: #718096;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+
+/* 项目细节 6 个灰色方块 */
+.detail-item-box {
+    background-color: #f8fafc;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    height: 180px;
+    overflow-y: auto;
+}
+
+.detail-item-box strong {
+    color: #1A3E5F;
+    margin-bottom: 8px;
+}
+
+.detail-item-box p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #334155;
+    margin: 0;
+}
+
+/* --- 6. 里程碑页面专用 (Milestones) --- */
+.student-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.student-list-item:hover {
+    transform: translateX(5px);
+    border-color: #2A72D8;
+}
+
+.progress-bar {
+    width: 150px;
+    height: 10px;
+    background-color: #edf2f7;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1A3E5F, #2A72D8);
+    border-radius: 5px;
+}
+
+.score-input {
+    width: 50px;
+    padding: 5px;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.btn-verify {
+    background-color: #ebf4ff;
+    color: #2b6cb0;
+    border: 1px solid #bee3f8;
+}
+
+.btn-verify.approved {
+    background-color: #c6f6d5;
+    color: #22543d;
+    border-color: #9ae6b4;
+    cursor: not-allowed;
+}
+
+.back-button {
+  padding: 10px 15px;
+  font-weight: 500;
+  white-space: nowrap; /* 防止按钮文字换行 */
+}
+
+/* --- 在 TeammateLecturer.css 文件末尾添加 --- */
+
+/* 筛选器容器样式 (参考您的 Dashboard.css) */
+.filters-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  /* 我们把它放在卡片内部，所以不需要下边框和外边距 */
+  padding-bottom: 20px; 
+}
+
+.course-filter-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.course-filter-container span {
+    font-weight: 600; /* 字体加粗一些 */
+    color: #4a5568;  /* 使用讲师端的主题色系 */
+}
+
+/* 筛选器按钮样式 (参考您的 Dashboard.css 并微调颜色) */
+.course-filter-btn {
+  padding: 8px 16px;
+  border: 1px solid #cbd5e1;
+  background-color: #fff;
+  color: #334155;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.course-filter-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.course-filter-btn.active {
+  background-color: #1A3E5F; /* 使用您在 TeammateLecturer.css 中定义的主题深蓝色 */
+  color: white;
+  border-color: #1A3E5F;
+  box-shadow: 0 2px 5px rgba(26, 62, 95, 0.2); /* 阴影颜色也与主题色匹配 */
+}
+/* --- Assessment page --- */
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+
+/* --- Course Performance Report --- */
+
+.course-report-table th:nth-child(6),
+.course-report-table td:nth-child(6) {
+  min-width: 105px;
+  width: 105px;
+  white-space: nowrap;
+}
+
+/* Stage pill. The shape lived here but the colours only existed in
+   Dashboard.css / LecturerDashboard.css, which this page does not import — so
+   the Course Report rendered a colourless tag. Fallback grey keeps an
+   unrecognised stage readable instead of white-on-white. */
+.fyp-stage-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  white-space: nowrap !important;
+  word-break: keep-all;
+  line-height: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-sizing: border-box;
+  color: #fff;
+  background-color: #64748b;
+}
+
+.fyp-stage-fyp1 { background-color: #3b82f6; }
+.fyp-stage-fyp2 { background-color: #16a34a; }
+.fyp-stage-proposal { background-color: #6f42c1; }
+
+.course-report-page header p {
+  margin-top: 6px;
+  color: #64748b;
+}
+
+.report-toolbar-card {
+  padding: 18px 24px;
+}
+
+.report-filters-wrapper {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0;
+}
+
+.report-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.report-summary-card {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.report-summary-card span {
+  display: block;
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.report-summary-card strong {
+  display: block;
+  color: #1A3E5F;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.report-chart-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 25px;
+  margin-bottom: 25px;
+}
+
+.report-chart-box {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.report-chart-box h3 {
+  margin: 0 0 20px 0;
+  color: #1A3E5F;
+}
+
+.grade-bar-chart {
+  height: 260px;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 10px 4px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.grade-bar-item {
+  flex: 1;
+  min-width: 28px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.grade-bar-value {
+  color: #475569;
+  font-size: 0.8rem;
+  min-height: 18px;
+}
+
+.grade-bar-track {
+  height: 190px;
+  width: 100%;
+  background: #f1f5f9;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.grade-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #2A72D8, #1A3E5F);
+  border-radius: 12px 12px 0 0;
+  transition: height 0.25s ease;
+}
+
+.grade-bar-label {
+  color: #1A3E5F;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.status-pie-layout {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.status-pie {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.status-pie::after {
+  content: '';
+  position: absolute;
+  width: 92px;
+  height: 92px;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+.status-pie span {
+  position: relative;
+  z-index: 1;
+  color: #1A3E5F;
+  font-weight: 800;
+  font-size: 1.8rem;
+}
+
+.status-legend {
+  flex: 1;
+  display: grid;
+  gap: 8px;
+}
+
+.status-legend-row {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.legend-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.report-table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.report-table-header h2 {
+  margin: 0;
+  color: #1A3E5F;
+}
+
+.report-table-header p {
+  margin: 4px 0 0;
+  color: #64748b;
+}
+
+.report-status-pass { background-color: #d1e7dd; color: #0f5132; }
+.report-status-fail { background-color: #f8d7da; color: #842029; }
+.report-status-i { background-color: #fff3cd; color: #856404; }
+.report-status-xa,
+.report-status-xb,
+.report-status-xm { background-color: #e7f1ff; color: #084298; }
+.report-status-w { background-color: #e2e3e5; color: #41464b; }
+
+@media (max-width: 1100px) {
+  .report-summary-grid,
+  .report-chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-filters-wrapper,
+  .status-pie-layout {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* --- CO Attainment Report --- */
+.report-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.co-attainment-card {
+  margin-bottom: 25px;
+}
+
+.co-attainment-bars {
+  display: grid;
+  gap: 14px;
+}
+
+.co-attainment-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 70px;
+  align-items: center;
+  gap: 12px;
+  color: #475569;
+  font-size: 0.92rem;
+}
+
+.co-attainment-row > span {
+  font-weight: 700;
+  color: #1A3E5F;
+}
+
+.co-attainment-track {
+  height: 14px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.co-attainment-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1A3E5F, #2A72D8);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.co-summary-table th,
+.co-summary-table td {
+  white-space: nowrap;
+}
+
+.report-export-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}

@@ -1,0 +1,167 @@
+/* --- src/pages/LecturerDashboard.css (新建) --- */
+
+.lecturer-dashboard .welcome-header {
+    margin-bottom: 30px;
+}
+.lecturer-dashboard .welcome-header h1 { font-size: 2.5rem; }
+.lecturer-dashboard .welcome-header p { font-size: 1.1rem; color: #6c757d; }
+
+.lecturer-grid {
+    display: grid;
+    /* 左边占2份，右边占1份 */
+    grid-template-columns: 2fr 1fr; 
+    gap: 30px;
+}
+
+/* Supervision quota summary, shown above the two dashboard columns. */
+.quota-card {
+    margin-bottom: 30px;
+}
+
+.quota-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* Specificity has to beat `.lecturer-dashboard .card h3`, which draws a divider
+   under every card heading. */
+.lecturer-dashboard .quota-card .quota-card-head h3 {
+    margin: 0 0 4px 0;
+    font-size: 1.2rem;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.quota-card-head .ui-sub {
+    display: block;
+    color: #6c757d;
+    font-size: 0.88rem;
+    max-width: 52ch;
+}
+
+.quota-figure {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.05;
+    flex-shrink: 0;
+}
+
+.quota-figure strong {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    font-variant-numeric: tabular-nums;
+}
+
+.quota-figure .quota-figure-of {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.quota-figure small {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.quota-hint {
+    margin: 12px 0 0 0;
+}
+
+.lecturer-dashboard .card {
+    background-color: #fff;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+}
+
+.lecturer-dashboard .card h3 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.no-tasks {
+    text-align: center;
+    padding: 40px 0;
+    color: #888;
+}
+
+/* My Supervised Students 列表样式 */
+.student-task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.student-task-item {
+    padding: 15px 5px; /* 减少内边距让其不那么拥挤 */
+    border-bottom: 1px solid #f1f1f1;
+    display: grid;
+    /* 定义一个灵活的表格布局 */
+    grid-template-columns: 180px 120px 1fr auto;
+    gap: 15px;
+    align-items: center;
+}
+.student-task-item:last-child { border-bottom: none; }
+.student-name { font-weight: 600; }
+.student-id { font-size: 0.9rem; color: #6c757d; }
+.project-title {
+    font-size: 0.9rem;
+    color: #555;
+    /* 防止长标题换行 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* The FYP stage pill is styled once, in TeammateLecturer.css (`.fyp-stage-tag`
+   plus the per-stage variants). It used to be re-declared here with a smaller
+   font and a 12px radius, which fought that shared rule and changed the pill's
+   shape depending on which stylesheet happened to load last. */
+
+/* My Upcoming Schedule 列表样式 */
+.my-schedule-card .btn-secondary {
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #343a40;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.schedule-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.schedule-list li {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 5px;
+    border-bottom: 1px solid #f1f1f1;
+}
+.schedule-date { font-weight: 600; width: 70px; }
+.schedule-time { font-size: 0.9rem; color: #555; width: 90px; }
+.schedule-venue { font-size: 0.9rem; font-weight: 500; }
+
+.role-tag {
+    margin-left: auto; /* 关键：将角色标签推到最右边 */
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+.role-supervisor { background-color: #dcfce7; color: #166534; }
+.role-examiner { background-color: #e0f2fe; color: #0c4a6e; }

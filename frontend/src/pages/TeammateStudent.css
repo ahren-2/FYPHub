@@ -1,0 +1,236 @@
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.card, .content-card {
+    background-color: #ffffff;
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+    margin-bottom: 20px;
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #0d6efd;
+    margin-bottom: 15px;
+}
+
+/* 状态标签样式 */
+.status {
+    font-weight: bold;
+}
+.status.submitted, .status.approved {
+    color: #198754;
+}
+.status.pending {
+    color: #ffc107;
+}
+.status.revision {
+    color: #dc3545;
+}
+
+/* --- 2. 核心表单元素 (Inputs, Select, Textarea) --- */
+.form-group {
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.form-group input[type="text"], 
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group select, 
+.form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+    outline: none;
+}
+
+/* 自定义下拉箭头 */
+.form-group select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: .65em auto;
+}
+
+/* 提交按钮 */
+.btn-submit {
+    background-color: #0d6efd;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+    background-color: #0b5ed7;
+}
+
+/* --- 3. TRF 专用网格布局 --- */
+.trf-form-container {
+    padding: 30px 40px;
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.form-section h4 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 1.2rem;
+    color: #343a40;
+}
+
+.trf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.trf-grid-3-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.form-group-inline {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.form-group-inline label {
+    flex-basis: 140px;
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.radio-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: normal;
+}
+
+/* --- 4. 反馈页面 (Feedback) 样式 --- */
+.feedback-item {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.feedback-date {
+    font-size: 0.85em;
+    color: #6c757d;
+}
+
+.feedback-body p {
+    margin: 0;
+    line-height: 1.6;
+    color: #495057;
+}
+
+/* --- 5. 公告页面 (Announcements) 样式 --- */
+.announcement-item {
+    background-color: #ffffff;
+    border-left: 5px solid #6c757d;
+    border-radius: 0 8px 8px 0;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    text-align: left;
+}
+
+.announcement-meta {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #f1f1f1;
+    padding-bottom: 10px;
+}
+
+/* --- 6. 文件上传美化 --- */
+.file-upload-wrapper {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#file-name-display {
+    margin-left: 15px;
+    font-style: italic;
+    color: #6c757d;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: capitalize;
+  margin-left: 10px;
+}
+
+/* 不同状态的不同颜色 */
+.status-tag.status-not-submitted {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+}
+.status-tag.status-pending {
+  background-color: #fff3cd;
+  color: #664d03;
+}
+.status-tag.status-revision {
+  background-color: #f8d7da;
+  color: #842029;
+}
+.status-tag.status-approved {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
