@@ -22,7 +22,10 @@ function StudentListPage() {
       }
       
       try {
-        const response = await api.get('/projects/', { params: queryParams });
+        // The programme-wide list. '/projects/' is deliberately scoped to the
+        // projects a lecturer supervises, so a coordinator with no supervision
+        // load of their own saw a near-empty page here.
+        const response = await api.get('/student-list/', { params: queryParams });
         setProjects(response.data);
       } catch (err) {
         setError("Unable to load project data. Please check data integrity.");

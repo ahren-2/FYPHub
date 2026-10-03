@@ -19,7 +19,7 @@
     margin-bottom: 15px;
 }
 
-/* 状态标签样式 */
+/* Status badge styles */
 .status {
     font-weight: bold;
 }
@@ -33,7 +33,7 @@
     color: #dc3545;
 }
 
-/* --- 2. 核心表单元素 (Inputs, Select, Textarea) --- */
+/* --- 2. Core form elements (inputs, select, textarea) --- */
 .form-group {
     margin-bottom: 25px;
     text-align: left;
@@ -68,7 +68,7 @@
     outline: none;
 }
 
-/* 自定义下拉箭头 */
+/* Custom dropdown arrow */
 .form-group select {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -79,7 +79,7 @@
     background-size: .65em auto;
 }
 
-/* 提交按钮 */
+/* Submit button */
 .btn-submit {
     background-color: #0d6efd;
     color: white;
@@ -96,7 +96,7 @@
     background-color: #0b5ed7;
 }
 
-/* --- 3. TRF 专用网格布局 --- */
+/* --- 3. Grid layout specific to the TRF --- */
 .trf-form-container {
     padding: 30px 40px;
 }
@@ -144,7 +144,7 @@
     font-weight: normal;
 }
 
-/* --- 4. 反馈页面 (Feedback) 样式 --- */
+/* --- 4. Feedback page styles --- */
 .feedback-item {
     background-color: #ffffff;
     border: 1px solid #e9ecef;
@@ -174,7 +174,7 @@
     color: #495057;
 }
 
-/* --- 5. 公告页面 (Announcements) 样式 --- */
+/* --- 5. Announcements page styles --- */
 .announcement-item {
     background-color: #ffffff;
     border-left: 5px solid #6c757d;
@@ -193,7 +193,7 @@
     padding-bottom: 10px;
 }
 
-/* --- 6. 文件上传美化 --- */
+/* --- 6. File upload polish --- */
 .file-upload-wrapper {
     display: flex;
     align-items: center;
@@ -216,7 +216,7 @@
   margin-left: 10px;
 }
 
-/* 不同状态的不同颜色 */
+/* A different colour per status */
 .status-tag.status-not-submitted {
   background-color: #f8f9fa;
   color: #6c757d;

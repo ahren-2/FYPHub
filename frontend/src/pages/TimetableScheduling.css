@@ -1,44 +1,156 @@
-/* src/pages/TimetableScheduling.css */
+/* src/pages/TimetableScheduling.css
 
-.scheduling-container {
-  padding: 20px;
-}
+   The Timetable Scheduling page. Only the classes this page actually renders
+   are defined here: the rule set below was originally written for a markup
+   shape the page later abandoned, which left `.scheduling-grid` and friends
+   dead while the panel rendered with a hand-rolled inline two-column grid. The
+   visible result was the Configured Slots list flowing two items per row (so
+   two venues shared a line) and no responsive behaviour at all, because the
+   media queries at the bottom targeted classes nothing used.
 
-/* 调整卡片容器布局 */
+   The page now renders `.scheduling-grid` / `.scheduling-span-2` / `.date-list`
+   / `.date-item` / `.remove-btn`, so those queries apply again. */
+
+/* --- Panel layout ---------------------------------------------------------
+   Panel 1 and panel 2 side by side, with the Master Schedule spanning both.
+   ------------------------------------------------------------------------- */
+
 .scheduling-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 左右等宽 */
+  grid-template-columns: 1fr 1fr;
   gap: 25px;
-  margin-top: 20px;
+  align-items: start;
 }
 
-/* 自动排程按钮所在的卡片占满全宽 */
-.full-width-widget {
+/* The Master Schedule: the result table, full width under the two panels. */
+.scheduling-span-2 {
   grid-column: span 2;
-  text-align: center;
-  background-color: #f0f7ff; /* 浅蓝色背景，突出重点 */
-  border: 1px dashed #1890ff;
-  padding: 40px !important;
 }
 
-/* 日期列表样式 */
+/* --- Panel 1: setup presentation slots ------------------------------------ */
+
+.slot-panel-intro {
+  margin: 0 0 20px 0;
+}
+
+/* One input per entity, stacked on narrow panels and side by side when the
+   panel is wide enough. Each form owns its own button, so adding a third
+   presentation day never depends on a venue name being free. */
+.slot-add-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.slot-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.slot-add-form label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.slot-add-controls {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Deliberately not `.login-input`: that class carries the login page's 15px
+   padding and grey fill, which made these fields taller than the button beside
+   them and squeezed the date field until its placeholder was cut off. Given no
+   width of its own, the field also refused to shrink below its intrinsic size
+   inside the flex row. */
+.slot-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background-color: #fff;
+  color: #1e293b;
+}
+
+.slot-input:focus {
+  outline: none;
+  border-color: #0f62fe;
+  box-shadow: 0 0 0 3px rgba(15, 98, 254, 0.15);
+}
+
+.slot-add-controls .save-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* The configured days and configured venues, as two labelled lists rather than
+   one run-together block. */
+.slot-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.slot-config-column h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.92rem;
+  color: #334155;
+}
+
+.slot-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background-color: #eef2f7;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.slot-empty {
+  margin: 0;
+  padding: 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+/* Date list styles */
 .date-list {
   list-style: none;
   padding: 0;
-  margin-top: 15px;
-  max-height: 300px;
-  overflow-y: auto; /* 日期多时可滚动 */
+  margin: 0;
+  max-height: 260px;
+  overflow-y: auto; /* Scrollable when there are many dates */
 }
 
 .date-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px;
+  gap: 10px;
+  padding: 10px 12px;
   background-color: #fff;
   border: 1px solid #eee;
   border-radius: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   transition: all 0.2s;
 }
 
@@ -50,10 +162,13 @@
 .date-info {
   font-weight: 600;
   color: #333;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-/* 删除按钮样式 */
+/* Remove button styles */
 .remove-btn {
+  flex: 0 0 auto;
   background-color: #fff1f0;
   color: #ff4d4f;
   border: 1px solid #ffa39e;
@@ -69,7 +184,33 @@
   color: white;
 }
 
-/* 自动排程的大按钮 */
+/* --- Panel 2: AI & communication ------------------------------------------ */
+
+.ai-control-widget {
+  background-color: #f0f7ff;
+  border: 1px dashed #1890ff;
+  text-align: center;
+}
+
+.ai-control-intro {
+  margin: 18px 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.ai-control-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 0 30px;
+}
+
+.ai-control-actions .ui-hint {
+  margin: 0;
+  text-align: left;
+}
+
+/* The large auto-scheduler call to action */
 .run-scheduler-btn {
   background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
   color: white;
@@ -81,21 +222,68 @@
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(24, 144, 255, 0.3);
   transition: transform 0.2s, box-shadow 0.2s;
-  margin-top: 20px;
 }
 
-.run-scheduler-btn:hover {
+.run-scheduler-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
 }
 
-.run-scheduler-btn:active {
+.run-scheduler-btn:active:not(:disabled) {
   transform: translateY(0);
+}
+
+/* A disabled scheduler button has to look disabled: it is the page's signal
+   that panel 1 has no presentation day yet. */
+.run-scheduler-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .run-scheduler-btn.clear-btn {
   background: linear-gradient(135deg, #ff7875 0%, #f5222d 100%);
 }
+
 .run-scheduler-btn.notify-btn {
   background: linear-gradient(135deg, #fa8c16 0%, #d46b08 100%);
+}
+
+/* --- Narrower viewports ---------------------------------------------------
+   Two equal columns and a 40px-padded call-to-action need about 900px before
+   they stop feeling tight. The structure is unchanged; the grid simply becomes
+   one column, and the full-width widget spans that one column instead of two.
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .scheduling-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  /* `span 2` on a one-column grid creates a second implicit column, so the
+     widget would overflow. Restated as `span 1` for that reason. */
+  .scheduling-span-2 {
+    grid-column: span 1;
+  }
+
+  .ai-control-actions {
+    padding: 0 12px;
+  }
+
+  .run-scheduler-btn {
+    width: 100%;
+    padding: 15px 22px;
+    font-size: 1.05rem;
+  }
+
+  .date-item {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .date-item { flex-wrap: wrap; gap: 8px; }
+  .remove-btn { padding: 6px 12px; }
+  .slot-config-grid { grid-template-columns: 1fr; }
 }

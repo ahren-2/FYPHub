@@ -607,6 +607,47 @@ table.sheet .sum-row td {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
 }
 
+/* The programme an existing template belongs to, shown as a fixed value rather
+   than a picker: it is set when the template is created and cannot be moved
+   afterwards, so offering a dropdown would only suggest otherwise. Styled like
+   the admin fields above but inert, to read as information, not as a control. */
+.rubric-programme-locked {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background-color: #f3f4f6;
+  box-sizing: border-box;
+}
+
+.rubric-programme-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* A shared template is a different kind of thing, so it reads as neutral grey
+   rather than as another programme. */
+.rubric-programme-chip.is-shared {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
+.rubric-programme-locked-note {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
 /* Orange-tinted numeric mark-entry fields: weightage, supervisor and moderator marks. */
 .weight-input,
 .mark-input,

@@ -12,6 +12,23 @@ const ROLE_OPTIONS = [
     { value: 'coordinator', label: 'Coordinator' },
 ];
 
+// The role buttons above the table. "Administrators" is offered to an
+// administrator only: an administrator's account holds no programme, so for
+// anyone else that filter can only ever come back empty.
+const ROLE_FILTERS = [
+    { value: '', label: 'All' },
+    { value: 'student', label: 'Students' },
+    { value: 'lecturer', label: 'Lecturers' },
+    { value: 'coordinator', label: 'Coordinators' },
+    { value: 'admin', label: 'Administrators', adminsOnly: true },
+];
+
+// Not offered in the role picker by default: an administrator account is the
+// handover account, and granting the role is an administrator-only action on the
+// server too. It is added to the list only when it is the account's current role
+// (so the value round-trips) or when an administrator is the one signed in.
+const ADMIN_ROLE_OPTION = { value: 'admin', label: 'Administrator' };
+
 const FYP_STAGE_OPTIONS = [
     { value: 'FYP1', label: 'FYP 1' },
     { value: 'FYP2', label: 'FYP 2' },
@@ -23,7 +40,13 @@ const emptyForm = {
     username: '',
     email: '',
     role: 'student',
+    programme: '',
+    programme_label: '',
     student_id_no: '',
+    // The value the account held when the edit form opened, kept so the form can
+    // tell the coordinator that changing it moves the number everywhere the
+    // student is matched by it, not just on this screen.
+    loaded_student_id_no: '',
     phone_no: '',
     password: '',
     fyp_stage: 'FYP1',
@@ -64,7 +87,12 @@ function describeApiError(err) {
 function UserManagement() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    // A failed request used to be swallowed into the console, so the table fell
+    // through to "No accounts match these filters" and the page blamed the
+    // filters for a server problem. The message is kept so it can be shown.
+    const [loadError, setLoadError] = useState('');
     const [roleFilter, setRoleFilter] = useState(''); // '', 'student', 'lecturer'
+    const [programmeFilter, setProgrammeFilter] = useState(''); // '' = every programme
 
     // State for the upload functionality
     const [file, setFile] = useState(null);
@@ -73,6 +101,10 @@ function UserManagement() {
 
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+
+    // The programmes this coordinator may file accounts under. Loaded from the
+    // server rather than hard-coded so the list cannot drift from the database.
+    const [programmes, setProgrammes] = useState([]);
 
     // Create / edit profile form
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -84,22 +116,61 @@ function UserManagement() {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showDetailPassword, setShowDetailPassword] = useState(false);
-    const [currentUserId, setCurrentUserId] = useState(null);
+    // The signed-in account, not just its id: the page behaves differently for a
+    // coordinator (their cohort, and the coordinator-access transfer) and for an
+    // administrator (every cohort, and nothing but this screen).
+    const [me, setMe] = useState(null);
 
     const isEdit = formMode === 'edit';
     const isStudentForm = formData.role === 'student';
+    // An administrator is not attached to a cohort, because there is nothing for
+    // it to be scoped to — it looks after accounts in all of them. So the
+    // programme is optional (and shown as such) for that role only.
+    const isAdminForm = formData.role === 'admin';
+    const currentUserId = me ? me.id : null;
+    const signedInRole = me ? me.role : '';
+    const isSignedInAdmin = signedInRole === 'admin';
+    const isSignedInCoordinator = signedInRole === 'coordinator';
+
+    // What the role picker offers: the three course roles, plus Administrator
+    // when the account already holds it or the signed-in user may grant it.
+    const roleOptions = (
+        isAdminForm || isSignedInAdmin ? [...ROLE_OPTIONS, ADMIN_ROLE_OPTION] : ROLE_OPTIONS
+    );
+
+    // An account can legitimately sit on a programme the selectable list hides,
+    // because the list drops the legacy 'General'/'None' rows. Without this the
+    // select would find no matching option, fall back to showing the first
+    // programme, and silently move the account there on save.
+    const userProgrammeIsLegacy = Boolean(
+        isEdit
+        && formData.programme
+        && !programmes.some((programme) => String(programme.id) === String(formData.programme))
+    );
 
     const fetchUsers = React.useCallback(async () => {
         setLoading(true);
+        setLoadError('');
         try {
             const params = {};
             if (roleFilter) {
                 params['profile__role'] = roleFilter;
             }
             const res = await api.get('/users/', { params });
-            setUsers(res.data);
-        } catch (err) { 
-            console.error("Failed to fetch user list:", err); 
+            // A plain list is what this endpoint returns today. `results` is
+            // accepted too, so switching pagination on later cannot silently
+            // turn every account into an empty table again.
+            const rows = Array.isArray(res.data) ? res.data : res.data?.results;
+            if (!Array.isArray(rows)) {
+                setUsers([]);
+                setLoadError('The server did not return a list of accounts.');
+                return;
+            }
+            setUsers(rows);
+        } catch (err) {
+            console.error("Failed to fetch user list:", err);
+            setUsers([]);
+            setLoadError(describeApiError(err));
         } finally {
             setLoading(false);
         }
@@ -109,13 +180,58 @@ function UserManagement() {
         fetchUsers();
     }, [fetchUsers]);
 
+    // Filtered in the browser rather than by the API: the endpoint only filters
+    // on `profile__role`, and the list is already loaded in full. This keeps the
+    // programme filter usable while the list spans every programme.
+    const visibleUsers = programmeFilter
+        ? users.filter((user) => String(user.programme_id) === programmeFilter)
+        : users;
+
+    const hasFilters = Boolean(roleFilter || programmeFilter);
+
+    const clearFilters = () => {
+        setRoleFilter('');
+        setProgrammeFilter('');
+    };
+
+    // Names the filters in plain English, for the "nothing matches" message.
+    const programmeFilterLabel = (() => {
+        if (!programmeFilter) return '';
+        const match = programmes.find((programme) => String(programme.id) === programmeFilter);
+        return match
+            ? `${match.name}${match.code ? ` (${match.code})` : ''}`
+            : 'that programme';
+    })();
+
+    const activeFilterSummary = [
+        roleFilter
+            ? (ROLE_FILTERS.find((option) => option.value === roleFilter)?.label || roleFilter)
+            : '',
+        programmeFilterLabel,
+    ].filter(Boolean).join(' + ');
+
+    // Fetched once: the available programmes do not change while this page is
+    // open, so there is no reason to re-request them per form open.
+    useEffect(() => {
+        const fetchProgrammes = async () => {
+            try {
+                const res = await api.get('/programmes/');
+                setProgrammes(res.data);
+            } catch (err) {
+                console.error("Failed to fetch programmes:", err);
+            }
+        };
+        fetchProgrammes();
+    }, []);
+
     // Needed to know which row is "you", so your own Delete button can be
-    // disabled rather than failing on the server.
+    // disabled rather than failing on the server, and to know which role is
+    // looking at the page.
     useEffect(() => {
         const fetchCurrentUser = async () => {
             try {
                 const res = await api.get('/user/me/');
-                setCurrentUserId(res.data.id);
+                setMe(res.data);
             } catch (err) {
                 console.error("Failed to fetch the signed-in user:", err);
             }
@@ -129,7 +245,7 @@ function UserManagement() {
         if (user.id === currentUserId) {
             return 'You cannot delete your own account.';
         }
-        if (user.is_superuser || user.role === 'coordinator') {
+        if (user.is_superuser || user.role === 'coordinator' || user.role === 'admin') {
             return 'Coordinator and administrator accounts cannot be deleted here.';
         }
         return '';
@@ -161,7 +277,7 @@ function UserManagement() {
         if (window.confirm(`Are you sure you want to delete the user ${userName}? This action cannot be undone.`)) {
             try {
                 await api.delete(`/users/${userId}/`);
-                // 成功后直接从前端 state 中移除，避免重新请求 API，体验更流畅
+                // On success remove it from the front-end state directly; that avoids a fresh API request and feels smoother
                 setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
             } catch (err) {
                 alert(describeApiError(err) || "Delete failed.");
@@ -169,7 +285,7 @@ function UserManagement() {
         }
     };
 
-    // 【新增】打开详情弹窗的函数
+    // [NEW] Function that opens the details modal
     const handleViewDetails = (user) => {
         setSelectedUser(user);
         // Never leave a revealed password on screen for the next account.
@@ -177,18 +293,20 @@ function UserManagement() {
         setIsDetailModalOpen(true);
     };
 
-    // 打开“创建用户”表单
+    // Open the "Create User" form
     const openCreateForm = () => {
         setFormMode('create');
         setEditingUserId(null);
-        setFormData(emptyForm);
+        // Pre-select the only programme a coordinator can file accounts under,
+        // so the common case needs no interaction and the field is never blank.
+        setFormData({ ...emptyForm, programme: programmes[0] ? String(programmes[0].id) : '' });
         setFormError('');
         setShowNewPassword(false);
         setShowCurrentPassword(false);
         setIsFormModalOpen(true);
     };
 
-    // 打开“编辑资料”表单，并填入现有资料
+    // Open the "Edit Profile" form and fill in the existing details
     const openEditForm = (user) => {
         setFormMode('edit');
         setEditingUserId(user.id);
@@ -197,11 +315,22 @@ function UserManagement() {
             username: user.username || '',
             email: user.email || '',
             role: user.role || 'student',
+            programme: user.programme_id
+                ? String(user.programme_id)
+                // An administrator is not filed under a cohort and must not be
+                // given one by the form's default, or saving an unrelated edit
+                // would quietly attach it to whichever programme is first.
+                : (user.role === 'admin' ? '' : (programmes[0] ? String(programmes[0].id) : '')),
+            // Kept so a hidden legacy programme can still be named in the select.
+            programme_label: user.programme_name
+                ? `${user.programme_name}${user.programme_code ? ` (${user.programme_code})` : ''}`
+                : '',
             student_id_no: user.student_id_no || '',
+            loaded_student_id_no: user.student_id_no || '',
             phone_no: user.phone_no || '',
-            password: '', // 留空表示不修改密码
+            password: '', // Left blank to mean "do not change the password"
             fyp_stage: 'FYP1',
-            // 协调员可查看的现有密码（用于显示，不会提交）
+            // The existing password a coordinator may view (display only; it is never submitted)
             current_password: user.visible_password || '',
         });
         setFormError('');
@@ -214,6 +343,19 @@ function UserManagement() {
 
     const handleFormChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleRoleChange = (role) => {
+        setFormData((prev) => ({
+            ...prev,
+            role,
+            // An administrator belongs to no cohort, so the programme is cleared
+            // when that role is picked. Choosing any other role puts the default
+            // back, so the field is never left blank for a role that needs one.
+            programme: role === 'admin'
+                ? ''
+                : (prev.programme || (programmes[0] ? String(programmes[0].id) : '')),
+        }));
     };
 
     const handleSaveUser = async (event) => {
@@ -237,6 +379,14 @@ function UserManagement() {
                 : 'The password must be at least 6 characters long.');
             return;
         }
+        // Every account belongs to a programme; it is what the lists group and
+        // filter by, so an account without one would be effectively invisible.
+        // The one exception is the administrator, which is deliberately not
+        // scoped to a cohort at all.
+        if (!formData.programme && !isAdminForm) {
+            setFormError('Please choose the programme this account belongs to.');
+            return;
+        }
 
         // A visible warning before the password is actually replaced.
         if (isEdit && formData.password) {
@@ -250,15 +400,25 @@ function UserManagement() {
             if (!confirmed) return;
         }
 
-        // 只有学生才有学号；只有新建学生时才需要 FYP stage。
+        // Only students have a student ID, and the FYP stage is needed only when creating a student.
         const payload = {
             username,
             email: formData.email.trim(),
             full_name: formData.full_name.trim(),
             role: formData.role,
-            student_id_no: isStudentForm ? (formData.student_id_no || '').trim() : '',
+            // `null` is accepted by the API and means "no cohort", which is what
+            // an administrator account holds. Only reachable for that role: the
+            // guard above requires a programme for every other one.
+            programme: formData.programme ? Number(formData.programme) : null,
             phone_no: (formData.phone_no || '').trim(),
         };
+        // Sent only when the field was actually on screen. The form used to send
+        // `''` for every non-student account, and because this is a PATCH that
+        // empty string was written — so editing a lecturer who still carries a
+        // matric number (a former student, say) silently erased it.
+        if (isStudentForm) {
+            payload.student_id_no = (formData.student_id_no || '').trim();
+        }
         if (formData.password) {
             payload.password = formData.password;
         }
@@ -282,14 +442,14 @@ function UserManagement() {
         }
     };
 
-    // 【新增】处理权限转移的函数
+    // [NEW] Function that handles the permission transfer
     const handlePromote = async () => {
         if (!selectedUser) return;
         if (window.confirm(`WARNING:\nThis will transfer your Coordinator access to ${selectedUser.full_name} and you will be demoted to a Lecturer. This action is irreversible.\n\nAre you sure you want to proceed?`)) {
             try {
                 const res = await api.post(`/users/${selectedUser.id}/promote-to-coordinator/`);
                 alert(res.data.message);
-                // 权限转移是重大操作，成功后强制刷新整个页面以确保所有状态（包括侧边栏）都正确更新
+                // A permission transfer is a major operation, so force a full page reload afterwards to make sure every piece of state (the sidebar included) updates correctly
                 window.location.reload();
             } catch (err) {
                 alert("Promotion failed: " + (err.response?.data?.error || "An error occurred."));
@@ -298,13 +458,27 @@ function UserManagement() {
     };
 
     return (
-        <div className="main-content">
-            <header>
-                <h1>User Management</h1>
-                <p className="ui-page-subtitle">
-                    Every student, lecturer and coordinator account in the system. Create accounts one at a time, or
-                    add students in bulk from an Excel file.
-                </p>
+        <div className="main-content um-page">
+            <header className="um-header">
+                <div className="um-header-text">
+                    <h1>User Management</h1>
+                    <p className="ui-page-subtitle">
+                        {isSignedInAdmin
+                            ? 'Every account in FYPHub — every student, lecturer, coordinator and administrator, in every programme. Create accounts one at a time, or add several from an Excel file.'
+                            : 'Every student, lecturer and coordinator account in your programme. Create accounts one at a time, or add students in bulk from an Excel file.'}
+                    </p>
+                </div>
+                {/* The two actions live in the header rather than in the filter
+                    row: the header had the room, and in the filter row they were
+                    squeezed onto two lines each on a laptop screen. */}
+                <div className="um-header-actions">
+                    <button onClick={() => setShowUploadModal(true)} className="btn btn-secondary">
+                        Upload information
+                    </button>
+                    <button onClick={openCreateForm} className="btn btn-primary">
+                        + Create User
+                    </button>
+                </div>
             </header>
 
             <Legend
@@ -315,55 +489,113 @@ function UserManagement() {
                     // Matches .role-coordinator in UserManagement.css — this swatch
                     // used to be purple while the badge in the table was red.
                     { colour: '#fee2e2', label: 'Coordinator', tip: 'Runs the course: quotas, announcements, rubrics, scheduling and reports.' },
+                    { colour: '#ede9fe', label: 'Administrator', tip: 'Maintains accounts across every programme. Sees this page only.' },
                 ]}
             />
 
             <div className="card">
-                <div className="page-toolbar">
-                    <div className="role-filters">
-                        <span>Filter by Role:</span>
-                        <button onClick={() => setRoleFilter('')} className={!roleFilter ? 'active' : ''}>All</button>
-                        <button onClick={() => setRoleFilter('student')} className={roleFilter === 'student' ? 'active' : ''}>Students</button>
-                        <button onClick={() => setRoleFilter('lecturer')} className={roleFilter === 'lecturer' ? 'active' : ''}>Lecturers</button>
+                <div className="um-toolbar">
+                    <div className="um-filter-group">
+                        <span className="um-filter-label" id="um-role-filter-label">Filter by role</span>
+                        <div className="um-chips" role="group" aria-labelledby="um-role-filter-label">
+                            {ROLE_FILTERS.filter((option) => !option.adminsOnly || isSignedInAdmin).map((option) => (
+                                <button
+                                    key={option.value || 'all'}
+                                    type="button"
+                                    onClick={() => setRoleFilter(option.value)}
+                                    className={`um-chip${roleFilter === option.value ? ' is-active' : ''}`}
+                                    aria-pressed={roleFilter === option.value}
+                                >
+                                    {option.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                    <div className="toolbar-actions">
-                        <button onClick={() => setShowUploadModal(true)} className="btn btn-secondary">
-                            Upload information
-                        </button>
-                        <button onClick={openCreateForm} className="btn btn-primary">
-                            + Create User
-                        </button>
+                    <div className="um-filter-group">
+                        <label className="um-filter-label" htmlFor="um-programme-filter">Filter by programme</label>
+                        <select
+                            id="um-programme-filter"
+                            className="um-select"
+                            value={programmeFilter}
+                            onChange={(e) => setProgrammeFilter(e.target.value)}
+                        >
+                            <option value="">All programmes</option>
+                            {programmes.map((programme) => (
+                                <option key={programme.id} value={String(programme.id)}>
+                                    {programme.name}{programme.code ? ` (${programme.code})` : ''}
+                                </option>
+                            ))}
+                        </select>
                     </div>
+                    {hasFilters && (
+                        <button type="button" className="um-clear" onClick={clearFilters}>
+                            Clear filters
+                        </button>
+                    )}
                 </div>
-                
-                <div className="timetable-container">
-                  {/* 【修改】添加 bordered 类以应用新样式 */}
-                  <table className="schedule-table bordered">
+
+                <div className="um-count">
+                    <p className="ui-sub">
+                        {isSignedInAdmin
+                            ? 'Every account, in every programme, whatever its role.'
+                            : 'The accounts in your own programme.'}
+                        {' '}Showing <strong>{visibleUsers.length}</strong> of{' '}
+                        <strong>{users.length}</strong> loaded account{users.length === 1 ? '' : 's'}
+                        {hasFilters ? ' after filtering' : ''}.
+                    </p>
+                </div>
+
+                <div className="um-table-scroll">
+                  <table className="schedule-table bordered um-table">
                       <thead>
                           <tr>
-                              {/* 【新增】号码列 */}
-                              <th style={{width: '50px'}}>NO.</th> 
+                              <th className="um-col-no">NO.</th>
                               <th>NAME</th>
                               <th>USERNAME</th>
-                              <th>ROLE</th>
-                              <th>ACTION</th>
+                              <th className="um-col-role">ROLE</th>
+                              <th className="um-col-programme">PROGRAMME</th>
+                              <th className="um-col-action">ACTION</th>
                           </tr>
                       </thead>
                       <tbody>
                           {loading ? (
-                              <tr><td colSpan="5" style={{textAlign: 'center'}}>Loading...</td></tr>
+                              <tr><td colSpan="6" className="um-loading-cell">Loading accounts…</td></tr>
+                          ) : loadError ? (
+                              /* A failed request must not read as "you have no
+                                 accounts" — that is exactly how a stale server
+                                 looked like an empty database. */
+                              <tr className="um-message-row"><td colSpan="6" className="um-message-cell">
+                                <EmptyState
+                                  icon="⚠️"
+                                  title="The account list could not be loaded"
+                                  message={`${loadError} The list is not empty — the request itself failed. Check that the FYPHub API is running, then try again.`}
+                                >
+                                  <button type="button" className="btn btn-primary" onClick={fetchUsers}>
+                                    Try again
+                                  </button>
+                                </EmptyState>
+                              </td></tr>
                           ) : (
-                              users.map((user, index) => {
+                              visibleUsers.map((user, index) => {
                                 const blockedReason = deleteBlockedReason(user);
                                 return (
                                   <tr key={user.id}>
-                                      {/* 【新增】显示行号 */}
-                                      <td>{index + 1}</td> 
-                                      <td>{user.full_name || user.username}</td>
-                                      <td>{user.username}</td>
-                                      <td><span className={`role-tag role-${user.role}`}>{user.role}</span></td>
+                                      <td>{index + 1}</td>
+                                      <td className="um-cell-name">{user.full_name || user.username}</td>
+                                      <td className="um-cell-username">{user.username}</td>
+                                      <td>
+                                        {/* An account with no Profile row (a
+                                            createsuperuser leftover) has no role
+                                            to name. Only an administrator can see
+                                            one, so it is spelled out rather than
+                                            left as a blank badge. */}
+                                        {user.role
+                                          ? <span className={`role-tag role-${user.role}`}>{user.role}</span>
+                                          : <span className="um-cell-muted">No profile</span>}
+                                      </td>
+                                      <td>{user.programme_name || <span className="um-cell-muted">Not set</span>}</td>
                                       <td className="action-buttons">
-                                          {/* 【新增】查看详情按钮 */}
+                                          {/* [NEW] View details button */}
                                           <button onClick={() => handleViewDetails(user)} className="btn-icon view">
                                             <FiEye aria-hidden="true" /> View
                                           </button>
@@ -371,7 +603,7 @@ function UserManagement() {
                                             <FiEdit2 aria-hidden="true" /> Edit
                                           </button>
                                           <button
-                                            onClick={() => handleDeleteUser(user.id, user.full_name)}
+                                            onClick={() => handleDeleteUser(user.id, user.full_name || user.username)}
                                             className="btn-icon delete"
                                             disabled={Boolean(blockedReason)}
                                             title={blockedReason || `Delete ${user.full_name || user.username}`}
@@ -383,15 +615,31 @@ function UserManagement() {
                                 );
                               })
                           )}
-                           {!loading && users.length === 0 && (
-                              <tr><td colSpan="5">
-                                <EmptyState
-                                  icon="🔍"
-                                  title={roleFilter ? `No ${roleFilter} accounts found` : 'No accounts found'}
-                                  message={roleFilter
-                                    ? 'Try switching the role filter back to “All”, or create an account to get started.'
-                                    : 'Create an account or upload a student spreadsheet to get started.'}
-                                />
+                           {!loading && !loadError && visibleUsers.length === 0 && (
+                              <tr className="um-message-row"><td colSpan="6" className="um-message-cell">
+                                {users.length === 0 ? (
+                                  /* Nothing came back at all: this is not a filter
+                                     problem, so it must not be described as one. */
+                                  <EmptyState
+                                    icon="👤"
+                                    title={isSignedInAdmin ? 'No accounts exist yet' : 'No accounts in your programme yet'}
+                                    message="Create the first account with “+ Create User”, or add students in bulk from an Excel file."
+                                  >
+                                    <button type="button" className="btn btn-primary" onClick={openCreateForm}>
+                                      + Create User
+                                    </button>
+                                  </EmptyState>
+                                ) : (
+                                  <EmptyState
+                                    icon="🔍"
+                                    title="No accounts match these filters"
+                                    message={`${users.length} account${users.length === 1 ? ' is' : 's are'} loaded, but none of them match ${activeFilterSummary || 'the current filters'}.`}
+                                  >
+                                    <button type="button" className="btn btn-secondary" onClick={clearFilters}>
+                                      Clear filters
+                                    </button>
+                                  </EmptyState>
+                                )}
                               </td></tr>
                            )}
                       </tbody>
@@ -399,7 +647,7 @@ function UserManagement() {
                 </div>
             </div>
 
-            {/* 上传弹窗 */}
+            {/* Upload modal */}
             {showUploadModal && (
                 <div className="modal-backdrop">
                     <div className="modal-content">
@@ -428,7 +676,7 @@ function UserManagement() {
                 </div>
             )}
 
-            {/* 创建 / 编辑用户资料弹窗 */}
+            {/* Create / edit user profile modal */}
             {isFormModalOpen && (
                 <div className="modal-backdrop">
                     <div className="modal-content form-modal">
@@ -490,12 +738,55 @@ function UserManagement() {
                                         <select
                                             id="um-role"
                                             value={formData.role}
-                                            onChange={(e) => handleFormChange('role', e.target.value)}
+                                            onChange={(e) => handleRoleChange(e.target.value)}
                                         >
-                                            {ROLE_OPTIONS.map((option) => (
+                                            {roleOptions.map((option) => (
                                                 <option key={option.value} value={option.value}>{option.label}</option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    <div className="form-field">
+                                        <label htmlFor="um-programme">
+                                            Programme {!isAdminForm && <span className="required-mark"> *</span>}
+                                        </label>
+                                        <select
+                                            id="um-programme"
+                                            value={formData.programme}
+                                            onChange={(e) => handleFormChange('programme', e.target.value)}
+                                            disabled={programmes.length === 0 && !userProgrammeIsLegacy}
+                                        >
+                                            {isAdminForm && (
+                                                <option value="">All programmes (administrator)</option>
+                                            )}
+                                            {userProgrammeIsLegacy && (
+                                                <option value={String(formData.programme)}>
+                                                    {formData.programme_label}
+                                                </option>
+                                            )}
+                                            {programmes.map((programme) => (
+                                                <option key={programme.id} value={String(programme.id)}>
+                                                    {programme.name}{programme.code ? ` (${programme.code})` : ''}
+                                                </option>
+                                            ))}
+                                            {programmes.length === 0 && !userProgrammeIsLegacy && !isAdminForm && (
+                                                <option value="">No programme available</option>
+                                            )}
+                                        </select>
+                                        {isAdminForm && (
+                                            <p className="ui-hint form-hint">
+                                                An administrator is not filed under one programme — that is what lets
+                                                the account see and maintain every cohort’s accounts.
+                                            </p>
+                                        )}
+                                        {isEdit && userProgrammeIsLegacy && (
+                                            <p className="form-warning">
+                                                This account is currently on <strong>{formData.programme_label}</strong>,
+                                                which is a leftover from the old spreadsheet upload rather than one of the
+                                                four current programmes. It is left in the list so you can see what the
+                                                account really holds. Choose a current programme above to move it.
+                                            </p>
+                                        )}
                                     </div>
 
                                     {isStudentForm && (
@@ -508,6 +799,14 @@ function UserManagement() {
                                                 onChange={(e) => handleFormChange('student_id_no', e.target.value)}
                                                 placeholder="e.g. A123456"
                                             />
+                                            {isEdit
+                                                && (formData.student_id_no || '').trim() !== (formData.loaded_student_id_no || '').trim() && (
+                                                <p className="form-warning">
+                                                    Correcting this number updates every record that matches the student by it —
+                                                    their project row, and any marks already saved for them. The Student List,
+                                                    the Timetable and the Course Report will show the new number.
+                                                </p>
+                                            )}
                                         </div>
                                     )}
 
@@ -617,12 +916,12 @@ function UserManagement() {
                 </div>
             )}
             
-            {/* 用户详情弹窗 */}
+            {/* User details modal */}
             {isDetailModalOpen && selectedUser && (
                 <div className="modal-backdrop">
-                    <div className="modal-content">
+                    <div className="modal-content um-detail-modal">
                         <div className="modal-header">
-                            <h2>User Details: {selectedUser.full_name}</h2>
+                            <h2>User Details: {selectedUser.full_name || selectedUser.username}</h2>
                             <span onClick={() => setIsDetailModalOpen(false)}>&times;</span>
                         </div>
                         <div className="modal-body user-details">
@@ -648,10 +947,22 @@ function UserManagement() {
                             <p><strong>Email:</strong> <span>{selectedUser.email || 'N/A'}</span></p>
                             <p><strong>Phone:</strong> <span>{selectedUser.phone_no || 'N/A'}</span></p>
                             <p><strong>Student ID:</strong> <span>{selectedUser.student_id_no || 'N/A'}</span></p>
-                            <p><strong>Role:</strong> <span className={`role-tag role-${selectedUser.role}`}>{selectedUser.role}</span></p>
+                            <p><strong>Role:</strong> <span className={`role-tag role-${selectedUser.role}`}>{selectedUser.role || 'No profile'}</span></p>
+                            <p>
+                                <strong>Programme:</strong>{' '}
+                                <span>
+                                    {selectedUser.programme_name
+                                        ? `${selectedUser.programme_name}${selectedUser.programme_code ? ` (${selectedUser.programme_code})` : ''}`
+                                        : 'Not set'}
+                                </span>
+                            </p>
                         </div>
                         <div className="modal-footer">
-                            {selectedUser.role === 'lecturer' && (
+                            {/* Only a coordinator owns coordinator access, so the
+                                transfer is offered to that role alone. An
+                                administrator sees the account but not the button,
+                                rather than a button the API would refuse. */}
+                            {isSignedInCoordinator && selectedUser.role === 'lecturer' && (
                                 <>
                                     <p className="ui-hint" style={{ marginRight: 'auto', maxWidth: '340px', textAlign: 'left' }}>
                                         Transferring coordinator access gives this lecturer your coordinator tools and

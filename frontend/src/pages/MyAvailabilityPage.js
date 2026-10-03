@@ -1,4 +1,4 @@
-// --- File: src/pages/MyAvailabilityPage.js (Phase 3 增强版) ---
+// --- File: src/pages/MyAvailabilityPage.js (Phase 3 enhanced version) ---
 import React, { useState, useEffect } from 'react';
 import api from '../api'; 
 import moment from 'moment';
@@ -26,7 +26,7 @@ function MyAvailabilityPage() {
   const [selectedDate, setSelectedDate] = useState(null); 
   const [loading, setLoading] = useState(true);
   
-  // 弹窗状态
+  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [modalDetails, setModalDetails] = useState(null);
   const [selectedProject, setSelectedProject] = useState('');
@@ -34,10 +34,10 @@ function MyAvailabilityPage() {
 
   const timeSlots = generateTimeSlots();
 
-  // 1. 获取所有必要数据
+  // 1. Fetch all the data we need
   const fetchData = async () => {
     try {
-      // 【修正】移除所有 API 请求的 '/api' 前缀
+      // [FIX] Removed the '/api' prefix from every API request
       const [bookRes, projRes, userRes, meRes, dayRes, venueRes] = await Promise.all([
         api.get('/bookings/'),
         api.get('/projects/'),
@@ -69,7 +69,7 @@ function MyAvailabilityPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // 2. 自动填入考官逻辑
+  // 2. Logic that auto-fills the examiner
   const handleProjectChange = (projectId) => {
     setSelectedProject(projectId);
     const project = myProjects.find(p => p.id === parseInt(projectId));
@@ -80,13 +80,13 @@ function MyAvailabilityPage() {
     }
   };
 
-  // 3. 点击格子逻辑
+  // 3. Cell click logic
   const handleSlotClick = (time, venueName, booking) => {
     if (booking) {
-      // 检查是否是当前用户的预约
+      // Check whether this is the current user's booking
       const isMine = booking.lecturer === currentUserId || booking.examiner === currentUserId;
       if (!isMine) {
-        // 满足老师要求：告知是谁预约了
+        // As the lecturer asked: tell them who made the booking
         alert(`This slot is already booked by Lecturer: ${booking.lecturer_name}`);
       } else {
         alert(`Your Appointment: ${booking.student_name}\nProject: ${booking.project_title}`);
@@ -97,9 +97,9 @@ function MyAvailabilityPage() {
     setShowModal(true);
   };
 
-  // 4. 提交预约
+  // 4. Submit the booking
   const handleConfirmBooking = async () => {
-        if (!selectedProject) { // 检查 examiner 是可选的
+        if (!selectedProject) { // Note that the examiner is optional
             alert("Please select a project.");
             return;
         }
@@ -109,7 +109,7 @@ function MyAvailabilityPage() {
 
         const data = {
             project: selectedProject,
-            examiner: selectedExaminer, // 如果为空，后端应能处理
+            examiner: selectedExaminer, // If empty, the backend should cope
             start_time: start.toISOString(),
             end_time: end.toISOString(),
             venue: modalDetails.venue
@@ -121,7 +121,7 @@ function MyAvailabilityPage() {
             setShowModal(false);
             setSelectedProject(''); 
             setSelectedExaminer('');
-            fetchData(); // 调用 fetchData 刷新数据
+            fetchData(); // Call fetchData to refresh the data
         } catch (err) {
             alert("Booking failed - Conflict detected.");
         }
@@ -187,15 +187,15 @@ function MyAvailabilityPage() {
             {timeSlots.map(time => (
               <React.Fragment key={time}>
                 <div className="header-cell time-header">{moment(time, 'HH:mm').format('hh:mm A')}</div>
-                {/* 【优化】使用从 state 获取的 venues 渲染格子 */}
+                {/* [IMPROVEMENT] Render the cells from the venues held in state */}
                 {venues.map(venue => {
                   const booking = bookings.find(b => 
                       moment.utc(b.start_time).format('YYYY-MM-DD') === selectedDate && 
                       moment.utc(b.start_time).format('HH:mm') === time && 
-                      b.venue === venue.name // 匹配 venue 名称
+                      b.venue === venue.name // Match on the venue name
                   );
 
-                  // 这里的 booking.lecturer 可能是一个 ID 或一个对象，取决于 Serializer 深度
+                  // booking.lecturer may be an ID or an object, depending on the serializer depth
                   const isMine = booking && (
                     (typeof booking.lecturer === 'object' ? booking.lecturer.id === currentUserId : booking.lecturer === currentUserId) || 
                     booking.examiner === currentUserId
@@ -216,7 +216,7 @@ function MyAvailabilityPage() {
                             </div>
                           </div>
                         ) : (
-                          // 【核心修改点】：根据老师建议，显示预约人的姓名
+                          // [CORE CHANGE] As the lecturer suggested, show the name of the person who booked
                           <div className="occupied-info">
                             <small>Booked by:</small>
                             <div className="lecturer-name-tag">{booking.lecturer_name || "Lecturer"}</div>

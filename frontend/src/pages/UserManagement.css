@@ -1,122 +1,286 @@
-/* --- File: src/pages/UserManagement.css (新建) --- */
+/* --- File: src/pages/UserManagement.css -------------------------------------
+   The account-maintenance screen (coordinator and administrator).
 
-/* 页面顶部工具栏 */
-.page-toolbar {
+   Layout notes, because this screen has been rebuilt for space:
+
+   * The page keeps the shared `.main-content` class, but `um-page` cancels its
+     padding / height / overflow. Every page is already rendered inside
+     MainLayout's `.content-area`, which has its own padding and its own
+     scrolling wrapper, so `.main-content`'s `padding: 40px 50px` and
+     `height: 100vh; overflow-y: auto` were being added *inside* that: roughly
+     180px of horizontal padding plus a second scroll container that was always
+     ~100px taller than the viewport, which is what made this table feel
+     squeezed and cut off.
+   * The filters are laid out as labelled groups that wrap, instead of one
+     `justify-content: space-between` row. That row had no `flex-wrap`, so on a
+     laptop every group was compressed: "Filter by Role:" broke into three
+     lines, the programme select showed "All program" and both action buttons
+     wrapped onto two lines each.
+   * The Create/Upload buttons moved up into the page header, which was half
+     empty, rather than competing with the filters for the same row.
+   ---------------------------------------------------------------------------- */
+
+/* ===========================================================================
+   1. Page shell
+   =========================================================================== */
+
+.main-content.um-page {
+    padding: 0;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+}
+
+/* Prefixed with `.main-content.um-page` so these beat the shared
+   `.main-content header` / `.main-content header h1` rules in
+   TeammateCoordinator.css, which are more specific than a bare class. */
+.main-content.um-page .um-header {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    align-items: center;
-    padding: 0 0 20px 0;
+    gap: 18px 32px;
+    flex-wrap: wrap;
     margin-bottom: 20px;
-    border-bottom: 1px solid #f1f1f1;
 }
 
-/* 角色筛选器样式 */
-.role-filters {
+.um-header-text {
+    min-width: 0;
+    flex: 1 1 420px;
+}
+
+.main-content.um-page .um-header h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+}
+
+.um-header-actions {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
+    flex: 0 0 auto;
 }
 
-/* 工具栏右侧的操作按钮 */
-.toolbar-actions {
+.um-header-actions .btn {
+    white-space: nowrap;
+}
+
+/* ===========================================================================
+   2. Filter bar
+   =========================================================================== */
+
+.um-toolbar {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px 28px;
+    padding-bottom: 18px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.um-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+/* The labels used to sit inline with the buttons and wrap mid-phrase. */
+.um-filter-label {
+    font-size: 0.71rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.um-chips {
     display: flex;
     align-items: center;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.role-filters span {
-    font-weight: 500;
-    color: #495057;
-}
-
-.role-filters button {
+.um-chip {
     padding: 8px 16px;
-    border-radius: 20px;
+    border-radius: 999px;
     border: 1px solid #dee2e6;
     background-color: #f8f9fa;
     color: #334155;
+    font-size: 0.86rem;
+    font-weight: 500;
+    white-space: nowrap;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
-.role-filters button:hover {
+.um-chip:hover {
     background-color: #e9ecef;
     border-color: #ced4da;
 }
 
-.role-filters button.active {
+.um-chip.is-active {
     background-color: #1e293b;
     color: #fff;
     border-color: #1e293b;
 }
 
-/* 角色标签样式 */
+.um-chip:focus-visible {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+.um-select {
+    padding: 9px 12px;
+    min-width: 15rem;
+    max-width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #1e293b;
+    font-size: 0.87rem;
+    font-family: inherit;
+}
+
+.um-select:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+}
+
+/* "Clear filters" stays out of the way until a filter is actually on. */
+.um-clear {
+    margin-left: auto;
+    align-self: flex-end;
+    padding: 8px 4px;
+    border: none;
+    background: none;
+    color: #0b4fd0;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.um-clear:hover { text-decoration: underline; }
+
+/* ===========================================================================
+   3. Count line above the table
+   =========================================================================== */
+
+.um-count {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px 20px;
+    flex-wrap: wrap;
+    margin: 0 0 12px 0 !important;
+}
+
+.um-count strong { color: #1e293b; }
+
+/* ===========================================================================
+   4. The account table
+   =========================================================================== */
+
+/* Wide tables scroll sideways inside the card instead of crushing every
+   column, so a long name or a three-button action cell never pushes the
+   layout around. */
+.um-table-scroll {
+    overflow-x: auto;
+    margin: 0 -4px;
+    padding: 0 4px;
+}
+
+.schedule-table.um-table {
+    min-width: 820px;
+}
+
+.schedule-table.um-table th,
+.schedule-table.um-table td {
+    vertical-align: middle;
+    padding: 14px 12px;
+}
+
+.schedule-table.um-table th {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+.schedule-table.um-table td {
+    font-size: 0.9rem;
+    color: #334155;
+}
+
+.schedule-table.um-table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Column widths, so the name column takes the slack and the small ones stay
+   small. Set on the header cells; the body follows the header. */
+.schedule-table.um-table th.um-col-no { width: 58px; }
+.schedule-table.um-table th.um-col-role { width: 128px; }
+.schedule-table.um-table th.um-col-programme { width: 150px; }
+.schedule-table.um-table th.um-col-action { width: 250px; }
+
+.um-cell-name {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.um-cell-username {
+    font-variant-numeric: tabular-nums;
+    color: #475569;
+}
+
+.um-cell-muted { color: #94a3b8; }
+
+/* The row-level message (empty state / load failure) is the only cell that
+   spans the table, so it keeps a generous amount of its own padding. */
+.schedule-table.um-table td.um-message-cell {
+    padding: 0;
+    background-color: #fff;
+}
+
+.schedule-table.um-table tbody tr.um-message-row:hover td {
+    background-color: #fff;
+}
+
+/* Specific enough to beat `.schedule-table.bordered td { text-align: left !important }`
+   a few sections below, which is itself !important. */
+.schedule-table.um-table td.um-loading-cell {
+    padding: 34px 12px;
+    text-align: center !important;
+    color: #64748b;
+}
+
+/* Role badge styles */
 .role-tag {
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: bold;
     text-transform: capitalize;
+    white-space: nowrap;
 }
 
 .role-student { background-color: #e0f2fe; color: #0c4a6e; }
 .role-lecturer { background-color: #dcfce7; color: #166534; }
 .role-coordinator { background-color: #fee2e2; color: #991b1b; }
+/* Matches the Administrator swatch in the page's Legend and .role-chip-admin. */
+.role-admin { background-color: #ede9fe; color: #4c1d95; }
 
-/* 弹窗 (Modal) 样式 */
-.modal-backdrop {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: white;
-    padding: 25px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 15px;
-    margin-bottom: 20px;
-}
-.modal-header h2 { margin: 0; }
-.modal-header span { font-size: 1.8rem; cursor: pointer; color: #888; }
-.modal-body p { margin: 0 0 15px 0; color: #555; }
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 25px;
-}
-
-.schedule-table.bordered th,
-.schedule-table.bordered td {
-  text-align: left !important;
-  border: 1px solid #e9ecef;
-}
-
-.schedule-table.bordered th {
-  background-color: #f8f9fa;
-}
-
-/* 【新增】Action 列的按钮样式 */
+/* [NEW] Button styles for the Action column */
 .action-buttons {
-  display: flex;
-  gap: 10px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    white-space: nowrap;
 }
+
 .btn-icon {
     padding: 6px 10px;
     border-radius: 5px;
@@ -150,7 +314,7 @@
 /* The row icons are Feather line icons, so keep them aligned with the label. */
 .btn-icon svg { flex-shrink: 0; width: 14px; height: 14px; }
 
-/* 【新增】权限转移按钮的危险样式 */
+/* [NEW] Danger styles for the permission-transfer button */
 .btn-danger {
   background-color: #dc3545;
   color: white;
@@ -160,25 +324,89 @@
   cursor: pointer;
 }
 
-/* 【新增】用户详情弹窗的特定样式 */
+/* ===========================================================================
+   5. Popups
+   =========================================================================== */
+
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* The read-only details list is narrow; this one can afford to be wider. */
+.um-detail-modal { max-width: 560px; }
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+.modal-header h2 { margin: 0; }
+.modal-header span { font-size: 1.8rem; cursor: pointer; color: #888; }
+.modal-body p { margin: 0 0 15px 0; color: #555; }
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.schedule-table.bordered th,
+.schedule-table.bordered td {
+  text-align: left !important;
+  border: 1px solid #e9ecef;
+}
+
+.schedule-table.bordered th {
+  background-color: #f8f9fa;
+}
+
+/* [NEW] Styles specific to the user details modal */
 .user-details p {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
     border-bottom: 1px solid #f1f1f1;
     padding: 12px 0;
     margin: 0;
 }
 .user-details p strong { color: #555; }
+.user-details p span { text-align: right; }
 
 /* ===========================================================================
-   Create / edit profile form
+   6. Create / edit profile form
    =========================================================================== */
 .form-modal {
     max-width: 620px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .form-modal form {
@@ -312,6 +540,29 @@
 }
 
 .form-warning strong { color: #7a5600; }
+
+/* ===========================================================================
+   7. Narrower viewports
+   =========================================================================== */
+
+@media (max-width: 1180px) {
+    .um-select { min-width: 12rem; }
+}
+
+@media (max-width: 900px) {
+    .um-toolbar { gap: 14px 18px; }
+    .um-filter-group { flex: 1 1 100%; }
+    .um-select { width: 100%; }
+    .um-clear { margin-left: 0; }
+    .um-header-text { flex: 1 1 100%; }
+    .main-content.um-page .um-header h1 { font-size: 1.7rem; }
+}
+
+@media (max-width: 640px) {
+    .um-chip { padding: 7px 13px; font-size: 0.8rem; }
+    .um-header-actions { width: 100%; }
+    .um-header-actions .btn { flex: 1 1 auto; }
+}
 
 @media (max-width: 560px) {
     .form-grid { grid-template-columns: minmax(0, 1fr); }

@@ -1,4 +1,4 @@
-/* --- src/pages/LecturerDashboard.css (新建) --- */
+/* --- src/pages/LecturerDashboard.css (new) --- */
 
 .lecturer-dashboard .welcome-header {
     margin-bottom: 30px;
@@ -8,9 +8,33 @@
 
 .lecturer-grid {
     display: grid;
-    /* 左边占2份，右边占1份 */
+    /* The left side takes 2 parts and the right side 1 */
     grid-template-columns: 2fr 1fr; 
     gap: 30px;
+}
+
+/* The two dashboard columns sit side by side while there is room for a readable
+   student list beside the widget column, and stack below that. 1200px is where
+   the 2fr column stops fitting a student name, a matric number, a project title
+   and a role pill on one line. */
+@media (max-width: 1200px) {
+    .lecturer-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .lecturer-dashboard .welcome-header h1 { font-size: 2rem; }
+    .lecturer-dashboard .welcome-header p { font-size: 1rem; }
+}
+
+/* Narrower still: the schedule rows and the quota header wrap instead of
+   squeezing their labels into two words per line. */
+@media (max-width: 720px) {
+    .lecturer-dashboard .welcome-header h1 { font-size: 1.7rem; }
+    .quota-card-head { gap: 12px; }
+    .schedule-list li { flex-wrap: wrap; gap: 8px 12px; }
+    .schedule-date, .schedule-time { width: auto; }
+    .role-tag { margin-left: 0; }
 }
 
 /* Supervision quota summary, shown above the two dashboard columns. */
@@ -97,28 +121,46 @@
     color: #888;
 }
 
-/* My Supervised Students 列表样式 */
+/* My Supervised Students list styles */
 .student-task-list {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 .student-task-item {
-    padding: 15px 5px; /* 减少内边距让其不那么拥挤 */
+    padding: 15px 5px; /* Trim the padding so it feels less cramped */
     border-bottom: 1px solid #f1f1f1;
     display: grid;
-    /* 定义一个灵活的表格布局 */
-    grid-template-columns: 180px 120px 1fr auto;
+    /* Four tracks on one line, but the two text columns are fractions rather than
+       fixed pixels. At 180px + 120px the name and matric columns alone claimed
+       300px, so the project title — the widest and most variable value — was the
+       one that got squeezed whenever the sidebar or a long name took space. */
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 2fr) auto;
     gap: 15px;
     align-items: center;
 }
 .student-task-item:last-child { border-bottom: none; }
+
+/* Below this the four columns cannot each stay legible, so the row becomes two
+   lines: name and matric on the first, title and the stage pill on the second.
+   The structure is unchanged — only the track count. */
+@media (max-width: 900px) {
+    .student-task-item {
+        grid-template-columns: minmax(0, 1fr) auto;
+        row-gap: 6px;
+    }
+
+    .student-task-item .project-title {
+        grid-column: 1 / -1;
+        white-space: normal;
+    }
+}
 .student-name { font-weight: 600; }
 .student-id { font-size: 0.9rem; color: #6c757d; }
 .project-title {
     font-size: 0.9rem;
     color: #555;
-    /* 防止长标题换行 */
+    /* Stop long titles from wrapping */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -128,7 +170,7 @@
    font and a 12px radius, which fought that shared rule and changed the pill's
    shape depending on which stylesheet happened to load last. */
 
-/* My Upcoming Schedule 列表样式 */
+/* My Upcoming Schedule list styles */
 .my-schedule-card .btn-secondary {
     width: 100%;
     margin-top: 20px;
@@ -157,7 +199,7 @@
 .schedule-venue { font-size: 0.9rem; font-weight: 500; }
 
 .role-tag {
-    margin-left: auto; /* 关键：将角色标签推到最右边 */
+    margin-left: auto; /* Key: push the role badge to the far right */
     padding: 4px 10px;
     border-radius: 12px;
     font-size: 0.75rem;

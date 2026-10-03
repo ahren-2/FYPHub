@@ -1,17 +1,17 @@
-// --- src/pages/TRFReviewPage.js (最终筛选功能版) ---
+// --- src/pages/TRFReviewPage.js (final version with filtering) ---
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
-import './TeammateLecturer.css'; // 继续使用您的 TeammateLecturer.css
+import './TeammateLecturer.css'; // Still using your TeammateLecturer.css
 
 function TRFReviewPage({ isGlobal = false }) {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // 【新增】: 创建一个新的 state 来管理筛选条件
-  const [statusFilter, setStatusFilter] = useState(''); // 默认为空，代表'All'
+  // [NEW] Create a new state to hold the filter criteria
+  const [statusFilter, setStatusFilter] = useState(''); // Empty by default, which means 'All'
 
   useEffect(() => {
     const fetchSubmissions = async () => {
@@ -21,7 +21,7 @@ function TRFReviewPage({ isGlobal = false }) {
         const params = { view: isGlobal ? 'all' : 'mine' };
         const res = await api.get(url, { params: params });
         
-        // 按学生姓名A-Z排序
+        // Sort by student name, A-Z
         const sortedSubmissions = res.data.sort((a, b) => 
           (a.student_name || '').localeCompare(b.student_name || '')
         );
@@ -37,10 +37,10 @@ function TRFReviewPage({ isGlobal = false }) {
     fetchSubmissions();
   }, [isGlobal]);
 
-  // 【新增】: 在前端根据筛选条件过滤要显示的 submissions
+  // [NEW] Filter the submissions to display on the front end using the filter criteria
   const filteredSubmissions = submissions.filter(sub => {
     if (!statusFilter) {
-      return true; // 如果没有设置筛选 (statusFilter为空), 则显示全部
+      return true; // With no filter set (statusFilter empty) show everything
     }
     return sub.status === statusFilter;
   });
@@ -53,7 +53,7 @@ function TRFReviewPage({ isGlobal = false }) {
       </header>
 
       <div className="card">
-        {/* 【核心新增】: 在表格前添加筛选器的 UI */}
+        {/* [CORE ADDITION] Add the filter UI above the table */}
         <div className="filters-wrapper">
             <div className="course-filter-container">
                 <span>Filter by Stage: </span>
@@ -77,7 +77,7 @@ function TRFReviewPage({ isGlobal = false }) {
           <tbody>
             {loading ? (
               <tr><td colSpan="5" style={{textAlign: 'center'}}>Loading...</td></tr>
-            // 【核心修改】: 使用 filteredSubmissions 进行渲染
+            // [CORE CHANGE] Render from filteredSubmissions
             ) : filteredSubmissions.length === 0 ? (
               <tr><td colSpan="5" style={{textAlign: 'center'}}>No submissions found for the selected filter.</td></tr>
             ) : (

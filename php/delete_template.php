@@ -25,7 +25,12 @@ if ($templateId === '') {
     exit();
 }
 
-// Hard delete template (cascades to rubrics_marks & rubrics_version_history via FK)
+// Hard delete. The two foreign keys into rubrics_templates carry
+// ON DELETE CASCADE (added by migration 0016_rubric_fk_on_delete_cascade), so
+// this single statement also removes the template's rubrics_marks rows and its
+// rubrics_active_templates row. Before that migration the keys used MySQL's
+// default NO ACTION rule and this DELETE failed on any template still in use.
+// (rubrics_version_history is not recreated by the migrations and is not touched.)
 $stmt = $conn->prepare("DELETE FROM rubrics_templates WHERE id = ?");
 $stmt->bind_param("s", $templateId);
 

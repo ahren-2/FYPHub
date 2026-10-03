@@ -9,7 +9,7 @@ class Command(BaseCommand):
     help = 'Import base data (Users, Projects, Relationships) and exclude time slots for auto-scheduling'
 
     def handle(self, *args, **kwargs):
-        # 1. 加载并清洗学生与人员数据
+        # 1. Load and clean the student and staff data
         try:
             df_main = pd.read_excel('students_data.xlsx')
             df_main = df_main.replace({np.nan: None})
@@ -18,7 +18,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"Critical: Could not read students_data.xlsx: {e}"))
             return
 
-        # --- 步骤 1: 注册所有 User 账号 (学生、导师、副导师) ---
+        # --- Step 1: register every User account (students, supervisors, co-supervisors) ---
         self.stdout.write("Step 1: Registering User accounts...")
         all_usernames = set()
         cols_to_check = ['username', 'supervisor_username', 'co_supervisor_username']
@@ -34,7 +34,7 @@ class Command(BaseCommand):
                 user.set_password('wow12345')
                 user.save()
 
-        # --- 步骤 2: 导入 Profile (姓名、课程、角色) ---
+        # --- Step 2: import the Profiles (name, course, role) ---
         self.stdout.write("Step 2: Setting up Profiles (Full Name & Roles)...")
         for _, row in df_main.iterrows():
             uname = str(row.get('username', '')).strip()
@@ -42,7 +42,7 @@ class Command(BaseCommand):
 
             try:
                 user = User.objects.get(username=uname)
-                # 处理课程
+                # Handle the course
                 course_code = str(row.get('course_code', 'General')).strip()
                 course, _ = Course.objects.get_or_create(code=course_code, defaults={'name': course_code})
                 
@@ -57,7 +57,7 @@ class Command(BaseCommand):
             except Exception as e:
                 self.stdout.write(self.style.WARNING(f"Skipping profile for {uname}: {e}"))
 
-        # --- 步骤 3: 建立项目基本信息 (学生 + 导师 + 副导师) ---
+        # --- Step 3: create the basic project record (student + supervisor + co-supervisor) ---
         self.stdout.write("Step 3: Linking Projects with Students and Supervisors...")
         for _, row in df_main.iterrows():
             uname = str(row.get('username', '')).strip()
@@ -66,10 +66,10 @@ class Command(BaseCommand):
 
             try:
                 student_user = User.objects.get(username=uname)
-                # 获取导师
+                # Get the supervisor
                 super_name = str(row.get('supervisor_username', '')).strip()
                 super_user = User.objects.get(username=super_name) if super_name and super_name.lower() != 'none' else None
-                # 获取副导师
+                # Get the co-supervisor
                 co_super_name = str(row.get('co_supervisor_username', '')).strip()
                 co_super_user = User.objects.get(username=co_super_name) if co_super_name and co_super_name.lower() != 'none' else None
 
@@ -86,7 +86,7 @@ class Command(BaseCommand):
             except Exception as e:
                 self.stdout.write(self.style.WARNING(f"Failed to create project '{title}': {e}"))
 
-        # --- 步骤 4: 从 slots_data.xlsx 仅导入考官信息 (忽略时间) ---
+        # --- Step 4: import examiner information only from slots_data.xlsx (the times are ignored) ---
         try:
             df_slots = pd.read_excel('slots_data.xlsx')
             df_slots = df_slots.replace({np.nan: None})
@@ -98,14 +98,14 @@ class Command(BaseCommand):
                 
                 try:
                     project = FYPProject.objects.get(title=p_title)
-                    # 仅导入考官关联
+                    # Import only the examiner link
                     ex_name = str(row.get('examiner_usernames', '')).strip()
                     if ex_name and ex_name.lower() != 'none':
                         ex_user, _ = User.objects.get_or_create(username=ex_name)
                         Profile.objects.get_or_create(user=ex_user, defaults={'role': 'lecturer'})
                         project.examiner = ex_user
                         project.save()
-                    # 【关键点】这里删除了 TimetableSlot.objects.create 逻辑
+                    # [KEY POINT] The TimetableSlot.objects.create logic was removed here
                 except FYPProject.DoesNotExist:
                     pass 
 

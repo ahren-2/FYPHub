@@ -1,5 +1,5 @@
 /* =============================================== */
-/* ===  全局和布局样式 (与其他角色保持一致) === */
+/* ===  Global and layout styles (kept consistent with the other roles) === */
 /* =============================================== */
 body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa; color: #212529; }
 .dashboard-container { display: flex; }
@@ -11,7 +11,7 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Ro
 .card h3 { margin-top: 0; color: #1e293b; font-size: 1.25rem; }
 
 /* =============================================== */
-/* ===  侧边栏样式 (与其他角色保持一致) === */
+/* ===  Sidebar styles (kept consistent with the other roles) === */
 /* =============================================== */
 .sidebar { width: 260px; height: 100vh; background-color: #1e293b; color: #e2e8f0; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; }
 .sidebar h2 { color: #fff; text-align: center; font-size: 1.8rem; margin: 0 0 40px 0; }
@@ -23,15 +23,15 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Ro
 .sidebar li.logout a:hover { background-color: #bb2d3b; }
 
 /* =============================================== */
-/* ===  协调员 Dashboard 专属样式 === */
+/* ===  Styles specific to the coordinator dashboard === */
 /* =============================================== */
 .coordinator-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* 响应式三栏布局 */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Responsive three-column layout */
     gap: 30px;
 }
 
-/* 公告板列表 */
+/* Announcement board list */
 .announcement-list {
     list-style-type: none;
     padding: 0;
@@ -45,7 +45,7 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Ro
     border-bottom: none;
 }
 
-/* 概览统计列表 */
+/* Overview statistics list */
 .summary-list {
     list-style-type: none;
     padding: 0;
@@ -58,18 +58,18 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Ro
     align-items: center;
 }
 .summary-list strong {
-    margin-left: auto; /* 把数字推到最右边 */
+    margin-left: auto; /* Push the number to the far right */
     font-size: 1.2rem;
 }
 
 
-/* 按钮样式 */
+/* Button styles */
 .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
 .btn.btn-primary { background-color: #1e293b; color: #fff; padding: 10px 20px; }
 .btn:hover { opacity: 0.85; }
 
 /* =============================================== */
-/* ===  更新后的专业表格样式 (Coordinator)  === */
+/* ===  Updated professional table styles (Coordinator)  === */
 /* =============================================== */
 table {
     width: 100%;
@@ -77,45 +77,45 @@ table {
 }
 
 table th, table td {
-    padding: 16px 10px; /* 稍微增加左右的内边距 */
-    border-bottom: 1px solid #f1f1f1; /* 分割线颜色变浅一点 */
-    text-align: left; /* 默认所有内容都左对齐 */
+    padding: 16px 10px; /* Slightly wider left and right padding */
+    border-bottom: 1px solid #f1f1f1; /* A slightly lighter divider colour */
+    text-align: left; /* Everything is left-aligned by default */
 }
 
 table th {
     color: #6c757d;
-    font-size: 0.8rem; /* 标题字号可以小一点 */
+    font-size: 0.8rem; /* The header font can be a little smaller */
     font-weight: 600;
     text-transform: uppercase;
     padding-bottom: 10px;
 }
 
-/* !!! 关键修改 #1: 让数字列右对齐 !!! */
+/* !!! KEY CHANGE #1: right-align the numeric columns !!! */
 /* 
-  :not(:first-child) 的意思是“不是第一个子元素”
-  所以这会选中除了“Supervisor”之外的所有列
+  :not(:first-child) means "not the first child element"
+  so this selects every column except "Supervisor"
 */
 table th:not(:first-child),
 table td:not(:first-child) {
-    text-align: right; /* 数字和它们的标题都右对齐 */
+    text-align: right; /* The numbers and their headers are right-aligned */
 }
 
 table tr:last-child td {
     border-bottom: none;
 }
 
-/* !!! 关键修改 #2: 确保卡片本身有足够的内边距 !!! */
-/* 我们稍微调整一下通用的 .card 样式 */
+/* !!! KEY CHANGE #2: make sure the card itself has enough padding !!! */
+/* We tweak the shared .card style a little */
 .card {
     background-color: #ffffff;
-    /* 左右内边距从 30px 减少到 25px，上下不变 */
+    /* Left and right padding drop from 30px to 25px; top and bottom are unchanged */
     padding: 25px; 
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
 }
 
 /* =============================================== */
-/* ===  协调员其他页面专属样式 === */
+/* ===  Styles specific to the coordinator's other pages === */
 /* =============================================== */
 
 /* --- Manage Announcements Page --- */
@@ -155,7 +155,7 @@ table tr:last-child td {
 .actions .btn-icon.edit { background-color: #e9ecef; }
 .actions .btn-icon.delete { background-color: #f8d7da; }
 
-/* 弹窗 (Modal) 样式 */
+/* Modal styles */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -204,4 +204,38 @@ table tr:last-child td {
     justify-content: flex-end;
     gap: 10px;
     margin-top: 30px;
+}
+
+/* =============================================== */
+/* ===  Narrower viewports  === */
+/* =============================================== */
+
+/* Manage Announcements is the only two-column layout left on the coordinator
+   screens: the composer beside the published list. The other grids already use
+   auto-fit and reflow on their own. */
+@media (max-width: 1024px) {
+    .grid-container-large {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 640px) {
+    /* The announcement row puts its text and its Edit/Delete buttons on one
+       line, which leaves the text about two words wide on a phone. */
+    .announcement-manage-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .actions { width: 100%; }
+
+    .overview-grid { gap: 14px; }
+    .overview-item { padding: 16px 14px; }
+    .overview-item .count { font-size: 2rem; }
+    .overview-item h4 { font-size: 0.9rem; }
+
+    .modal-header h2 { font-size: 1.2rem; }
+    .modal-footer { flex-wrap: wrap; }
 }

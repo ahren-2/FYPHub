@@ -1,3 +1,29 @@
+// --- File: src/pages/CoursePerformanceReport.js ---
+//
+// The Course Performance Report is a *programme* report, not a lecturer's own
+// marking sheet, so all three of its inputs are read through the signed-in
+// account's programme:
+//
+//   * Students come from `/student-list/` (`StudentListViewSet`), which is
+//     narrowed to the caller's programme. It deliberately does NOT come from
+//     `/projects/`: that endpoint answers with only the projects the signed-in
+//     lecturer supervises, co-supervises or examines. A coordinator who
+//     happened to supervise a few FYP 2 students therefore saw a report built
+//     from those few rows while the other coordinator of the same programme
+//     saw a different set — two different grade distributions, two different CO
+//     attainment rates, two different exports, all labelled as the same course.
+//   * Marks come from `list_marks.php?programme=<code>`, so a mark saved by
+//     another cohort can never be matched onto one of these students. The page
+//     used to pull every mark in the database and match on student id alone.
+//   * The course each stage is marked against comes from the rubric that the
+//     programme has set active for that stage (`get_active_template.php`). A
+//     rubric is bound to one programme in the Rubrics Editor and carries the
+//     course code with it — BCS marks CSS3714, another programme marks a
+//     different paper — so the course title follows the rubric instead of being
+//     hard-coded to the Computer Science papers for every cohort.
+//
+// Bound this way, every coordinator of a programme gets the same report for
+// that programme.
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../api';
 import './TeammateLecturer.css';
@@ -7,6 +33,14 @@ const PHP_API_URL = process.env.REACT_APP_PHP_API_URL || 'http://localhost/php';
 
 const GRADE_ORDER = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D', 'F'];
 const STATUS_ORDER = ['Pass', 'Fail', 'I', 'XA', 'XB', 'XM', 'W'];
+
+// The stages a report can be run for, in the order the tabs are offered. Which
+// of them actually appear is decided per programme from the stages its own
+// students are registered in, so a programme using the Proposal stage (its
+// rubric courses it separately, e.g. CDM3413 Academic Research Fundamental) can
+// report on it and a programme that does not use it is not shown an empty tab.
+const STAGE_ORDER = ['FYP1', 'FYP2', 'PROPOSAL'];
+const STAGE_LABELS = { FYP1: 'FYP 1', FYP2: 'FYP 2', PROPOSAL: 'Proposal' };
 
 function normalizeFypStage(value = '') {
   const compact = String(value).toUpperCase().replace(/\s+/g, '').replace(/PROJECT/g, 'FYP');
@@ -418,50 +452,136 @@ function CoAttainmentChart({ data }) {
 }
 
 function CoursePerformanceReport() {
-  const [projects, setProjects] = useState([]);
+  // The programme cohort, exactly as the Student List shows it.
+  const [cohort, setCohort] = useState([]);
   const [marks, setMarks] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [programmeCode, setProgrammeCode] = useState('');
+  // Course code and title the programme marks for each stage, e.g.
+  // { FYP1: 'CSS3714 Final Year Project I' }. Read off the programme's active
+  // rubric; a programme that has set none yet simply has no entry here.
+  const [courseByStage, setCourseByStage] = useState({});
+  const [availableStages, setAvailableStages] = useState([]);
   const [selectedStage, setSelectedStage] = useState('FYP1');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchReportData = async () => {
       setLoading(true);
       setError('');
 
       try {
-        const [projectsRes, marksRes] = await Promise.all([
-          api.get('/projects/'),
-          fetch(`${PHP_API_URL}/list_marks.php`).then((res) => res.json())
+        const meRes = await api.get('/user/me/');
+        const me = meRes.data || {};
+        const code = String(me.programme_code || '').trim();
+
+        // Programme-scoped cohort. `/projects/` would have returned only this
+        // account's own supervised students, which is what made two
+        // coordinators of one programme disagree about the same course.
+        //
+        // The cohort and the marks are independent reads, so they are issued
+        // together rather than one after the other.
+        const marksParams = new URLSearchParams();
+        if (code) marksParams.set('programme', code);
+        const marksQuery = marksParams.toString();
+
+        const [cohortRes, marksRes] = await Promise.all([
+          api.get('/student-list/'),
+          fetch(`${PHP_API_URL}/list_marks.php${marksQuery ? `?${marksQuery}` : ''}`)
+            .then((res) => res.json()),
         ]);
 
-        setProjects(Array.isArray(projectsRes.data) ? projectsRes.data : []);
+        const programmeCohort = Array.isArray(cohortRes.data) ? cohortRes.data : [];
+
+        // Only the stages this programme actually has students in. Proposal is
+        // included when it is in use, so its own course can be reported too.
+        const stages = STAGE_ORDER.filter((stage) => programmeCohort.some(
+          (project) => normalizeFypStage(project.fyp_stage) === stage
+        ));
+
+        // One active rubric per (programme, stage) is what decides the course
+        // the cohort is marked against. Resolved in parallel and allowed to
+        // fail quietly: when a programme has set no rubric for a stage the
+        // report shows no course code rather than another programme's.
+        const courseEntries = await Promise.all(stages.map(async (stage) => {
+          try {
+            const params = new URLSearchParams({ fyp_stage: stage });
+            if (code) params.set('programme', code);
+            const res = await fetch(
+              `${PHP_API_URL}/get_active_template.php?${params.toString()}`
+            ).then((response) => response.json());
+            return [stage, String(res?.template?.data?.course || '').trim()];
+          } catch (courseErr) {
+            console.warn(`No active rubric could be resolved for ${stage}.`, courseErr);
+            return [stage, ''];
+          }
+        }));
+
+        if (cancelled) return;
+
+        setCurrentUser(me);
+        setProgrammeCode(code);
+        setCohort(programmeCohort);
         setMarks(marksRes.success ? marksRes.marks || [] : []);
+        setCourseByStage(Object.fromEntries(courseEntries.filter(([, course]) => course)));
+        setAvailableStages(stages);
+        setSelectedStage((current) => (stages.includes(current) ? current : (stages[0] || current)));
       } catch (err) {
+        if (cancelled) return;
         console.error('Failed to load course performance report', err);
         setError('Unable to load report data. Please check the Django API and PHP backend.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchReportData();
+    return () => { cancelled = true; };
   }, []);
 
+  const stageLabel = STAGE_LABELS[selectedStage] || selectedStage;
+  const courseTitle = courseByStage[selectedStage] || '';
+
   const rows = useMemo(() => {
+    const courseForStage = courseByStage[selectedStage] || '';
+
+    // Marks for this stage only. The page used to take the newest mark per
+    // student regardless of stage, so a student holding both an FYP 1 and an
+    // FYP 2 mark showed the FYP 2 score, grade and COs on the FYP 1 tab. Within
+    // the stage, the row marked against the programme's own course wins over a
+    // leftover row from an older or foreign template.
     const latestMarksByStudent = new Map();
+    const isProgrammeCourse = (candidate) => !courseForStage
+      || !candidate.course
+      || String(candidate.course).trim() === courseForStage;
 
-    marks.forEach((mark) => {
-      const studentId = String(mark.student_id || '').trim();
-      if (!studentId) return;
+    marks
+      .filter((mark) => normalizeFypStage(mark.fyp_stage) === selectedStage)
+      .forEach((mark) => {
+        const studentId = String(mark.student_id || '').trim();
+        if (!studentId) return;
 
-      const existing = latestMarksByStudent.get(studentId);
-      const existingDate = existing ? new Date(existing.updated_at || existing.evaluated_at || 0).getTime() : 0;
-      const nextDate = new Date(mark.updated_at || mark.evaluated_at || 0).getTime();
-      if (!existing || nextDate >= existingDate) latestMarksByStudent.set(studentId, mark);
-    });
+        const existing = latestMarksByStudent.get(studentId);
+        if (!existing) {
+          latestMarksByStudent.set(studentId, mark);
+          return;
+        }
 
-    return projects
+        const candidatePreferred = isProgrammeCourse(mark);
+        if (candidatePreferred !== isProgrammeCourse(existing)) {
+          if (candidatePreferred) latestMarksByStudent.set(studentId, mark);
+          return;
+        }
+
+        const existingDate = new Date(existing.updated_at || existing.evaluated_at || 0).getTime();
+        const nextDate = new Date(mark.updated_at || mark.evaluated_at || 0).getTime();
+        if (nextDate >= existingDate) latestMarksByStudent.set(studentId, mark);
+      });
+
+    return cohort
       .filter((project) => normalizeFypStage(project.fyp_stage) === selectedStage)
       .sort((a, b) => (a.student_name || '').localeCompare(b.student_name || ''))
       .map((project, index) => {
@@ -482,7 +602,7 @@ function CoursePerformanceReport() {
           projectTitle: project.title || mark?.project_name || 'N/A',
           supervisor: project.supervisor_name || mark?.supervisor || 'N/A',
           fypStage: displayFypStage(project.fyp_stage || mark?.fyp_stage),
-          course: mark?.course || rawMarksData.course || (selectedStage === 'FYP1' ? 'CSS3714 Final Year Project I' : 'CSS3724 Final Year Project II'),
+          course: courseForStage || mark?.course || rawMarksData.course || '',
           sectionTotals,
           coAttainment,
           totalScore,
@@ -492,7 +612,7 @@ function CoursePerformanceReport() {
           updatedAt: mark?.updated_at || ''
         };
       });
-  }, [projects, marks, selectedStage]);
+  }, [cohort, marks, courseByStage, selectedStage]);
 
   const sectionColumns = useMemo(() => {
     const seen = new Map();
@@ -554,7 +674,14 @@ function CoursePerformanceReport() {
   };
 
   const buildExportData = (useSymbolAttainment = false) => {
-    const reportTitle = selectedStage === 'FYP1' ? 'CSS3714 Final Year Project I' : 'CSS3724 Final Year Project II';
+    // The course this programme marks for this stage, from its active rubric.
+    // Never a fixed CSS code: a programme that marks another paper, or has not
+    // set a rubric yet, must not have its sheet labelled with BCS's courses.
+    const reportTitle = courseTitle || `No active ${stageLabel} rubric set for this programme`;
+    // Who generated the sheet. Was the literal string 'Khairunnisa Ibrahim',
+    // which put one person's name on every coordinator's export.
+    const generatedBy = currentUser?.full_name || currentUser?.username || '—';
+    const programmeLine = programmeCode || '—';
     const generatedAt = new Date().toLocaleString();
     const attainmentValue = (attained) => {
       if (attained === null || attained === undefined) return '';
@@ -566,7 +693,8 @@ function CoursePerformanceReport() {
     const marksRows = [
       ['Course Performance Report'],
       ['Course, Code:', reportTitle],
-      ['Lecturer:', 'Khairunnisa Ibrahim'],
+      ['Programme:', programmeLine],
+      ['Generated By:', generatedBy],
       ['Generated At:', generatedAt],
       [],
       ['Marks'],
@@ -596,7 +724,8 @@ function CoursePerformanceReport() {
     const coRows = [
       ['Course Outcome Attainment of selected course.'],
       ['Course, Code:', reportTitle],
-      ['Lecturer:', 'Khairunnisa Ibrahim'],
+      ['Programme:', programmeLine],
+      ['Generated By:', generatedBy],
       ['Generated At:', generatedAt],
       [],
       ['COs'],
@@ -627,7 +756,8 @@ function CoursePerformanceReport() {
     const summaryRows = [
       ['Course Performance Report Summary'],
       ['Course, Code:', reportTitle],
-      ['Lecturer:', 'Khairunnisa Ibrahim'],
+      ['Programme:', programmeLine],
+      ['Generated By:', generatedBy],
       ['Generated At:', generatedAt],
       [],
       ['Overall Summary'],
@@ -675,19 +805,30 @@ function CoursePerformanceReport() {
           Marks, grade distribution, student status and <Term tip="Course Outcomes. A CO is attained when a student reaches 40% or more for it.">CO</Term> attainment
           for one FYP stage at a time. Only marks that have been saved by a lecturer appear here.
         </p>
+        <p className="ui-page-subtitle">
+          {programmeCode ? (
+            <>
+              Every figure below covers programme <strong>{programmeCode}</strong> as a whole, so each
+              coordinator of this programme sees the same report.
+              {courseTitle ? <> Course marked for {stageLabel}: <strong>{courseTitle}</strong>.</> : null}
+            </>
+          ) : (
+            'Your account is not assigned to a programme, so there is no cohort to report on. Ask an administrator to file your account under its programme.'
+          )}
+        </p>
       </header>
 
       <div className="card report-toolbar-card">
         <div className="filters-wrapper report-filters-wrapper">
           <div className="course-filter-container">
             <span>Course Report: </span>
-            {[{ code: 'FYP 1', value: 'FYP1' }, { code: 'FYP 2', value: 'FYP2' }].map((stage) => (
+            {availableStages.map((stage) => (
               <button
-                key={stage.value}
-                className={`course-filter-btn ${selectedStage === stage.value ? 'active' : ''}`}
-                onClick={() => setSelectedStage(stage.value)}
+                key={stage}
+                className={`course-filter-btn ${selectedStage === stage ? 'active' : ''}`}
+                onClick={() => setSelectedStage(stage)}
               >
-                {stage.code}
+                {STAGE_LABELS[stage] || stage}
               </button>
             ))}
           </div>
@@ -724,7 +865,7 @@ function CoursePerformanceReport() {
           <div>
             <h2>Status &amp; Grade of Students</h2>
             <p>
-              {selectedStage === 'FYP1' ? 'CSS3714 Final Year Project I' : 'CSS3724 Final Year Project II'}
+              {courseTitle || `No active ${stageLabel} rubric set for ${programmeCode || 'this programme'}`}
             </p>
           </div>
         </div>
@@ -751,7 +892,13 @@ function CoursePerformanceReport() {
               ) : error ? (
                 <tr><td colSpan="12" style={{ textAlign: 'center', color: '#842029' }}>{error}</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan="12" style={{ textAlign: 'center' }}>No students found for the selected FYP stage.</td></tr>
+                <tr>
+                  <td colSpan="12" style={{ textAlign: 'center' }}>
+                    {programmeCode
+                      ? `No ${stageLabel} students are registered in ${programmeCode} yet.`
+                      : 'Your account is not assigned to a programme, so there is no cohort to report on.'}
+                  </td>
+                </tr>
               ) : (
                 rows.map((row) => (
                   <tr key={`${row.studentId}-${row.no}`}>

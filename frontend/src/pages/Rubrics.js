@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import api from '../api';
 import "./Rubrics.css";
 import { Callout, EmptyState } from "../components";
 
@@ -11,6 +12,11 @@ function Rubrics() {
   const [menuOpen, setMenuOpen] = useState(null);
   const [renameId, setRenameId] = useState(null);
   const [newName, setNewName] = useState("");
+  // Which programme's rubrics are on screen. Each programme marks its own paper,
+  // so a stage has one active template *per programme* — and a coordinator only
+  // ever manages their own. The programme is read, not chosen: there is no
+  // selector to point at another cohort's rubrics.
+  const [programmeCode, setProgrammeCode] = useState('');
   const navigate = useNavigate();
 
   const normalizeFypStage = (value = '') => {
@@ -29,14 +35,45 @@ function Rubrics() {
     return 'Unknown FYP Stage';
   };
 
-  // Fetch templates on mount
+  // The coordinator's own programme decides which set is shown. Read once on
+  // mount; it cannot change without signing in again.
   useEffect(() => {
-    fetchTemplates();
+    const fetchProgramme = async () => {
+      try {
+        const meRes = await api.get('/user/me/');
+        const own = (meRes.data?.programme_code || '').trim();
+        if (own) {
+          setProgrammeCode(own);
+          return;
+        }
+      } catch (error) {
+        console.error('Could not read the signed-in programme:', error);
+      }
+      // An account with no programme of its own falls back to the first
+      // configured one, so the page still shows something rather than nothing.
+      try {
+        const programmesRes = await api.get('/programmes/');
+        setProgrammeCode(((programmesRes.data || [])[0]?.code) || '');
+      } catch (error) {
+        console.error('Could not load the programme list:', error);
+      }
+    };
+    fetchProgramme();
   }, []);
 
-  const fetchTemplates = async () => {
+  // Re-fetch whenever the selected programme changes, so the "Active" badges
+  // reflect the programme currently on screen rather than the last one loaded.
+  useEffect(() => {
+    if (!programmeCode) return;
+    fetchTemplates(programmeCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [programmeCode]);
+
+  const fetchTemplates = async (code) => {
+    setLoading(true);
     try {
-      const response = await fetch(`${PHP_API_URL}/list_templates.php`);
+      const params = code ? `?programme=${encodeURIComponent(code)}` : '';
+      const response = await fetch(`${PHP_API_URL}/list_templates.php${params}`);
       const data = await response.json();
       
       if (data.success) {
@@ -67,7 +104,7 @@ function Rubrics() {
 
       if (data.success) {
         alert("Template deleted successfully!");
-        fetchTemplates(); // Refresh list
+        fetchTemplates(programmeCode); // Refresh list
       } else {
         alert("Error: " + data.message);
       }
@@ -96,7 +133,7 @@ function Rubrics() {
 
       if (data.success) {
         alert("Template renamed successfully!");
-        fetchTemplates(); // Refresh list
+        fetchTemplates(programmeCode); // Refresh list
         setRenameId(null);
         setNewName("");
       } else {
@@ -117,15 +154,27 @@ function Rubrics() {
       return;
     }
 
-    const currentActive = templates.find((item) => item.active_for_stage === stage);
+    if (!programmeCode) {
+      alert('Choose a programme first — an active rubric is set per programme.');
+      setMenuOpen(null);
+      return;
+    }
+
+    // Scoped to the programme on screen. Two programmes can each hold a template
+    // for the same stage, so "the current active one" means the current one
+    // *for this programme*.
+    const currentActive = templates.find(
+      (item) => normalizeFypStage(item.active_for_stage) === stage
+        && (item.programme_code || '') === (template.programme_code || '')
+    );
     const stageLabel = displayFypStage(stage);
 
-    let message = `Set "${template.title}" as the active rubric for ${stageLabel}?\n\nLecturers will use this rubric when grading ${stageLabel} students.`;
+    let message = `Set "${template.title}" as the active rubric for ${stageLabel} in ${programmeCode}?\n\nLecturers in ${programmeCode} will use this rubric when grading ${stageLabel} students.`;
 
     if (currentActive && currentActive.id !== template.id) {
-      message = `There is already an active rubric for ${stageLabel}:\n"${currentActive.title}"\n\nDo you want to replace it with:\n"${template.title}"?`;
+      message = `There is already an active rubric for ${stageLabel} in ${programmeCode}:\n"${currentActive.title}"\n\nDo you want to replace it with:\n"${template.title}"?`;
     } else if (currentActive && currentActive.id === template.id) {
-      alert(`This template is already the active rubric for ${stageLabel}.`);
+      alert(`This template is already the active rubric for ${stageLabel} in ${programmeCode}.`);
       setMenuOpen(null);
       return;
     }
@@ -142,6 +191,7 @@ function Rubrics() {
         body: JSON.stringify({
           template_id: template.id,
           fyp_stage: stage,
+          programme: programmeCode,
           updated_by: 'coordinator'
         })
       });
@@ -149,8 +199,8 @@ function Rubrics() {
       const data = await response.json();
 
       if (data.success) {
-        alert(`${stageLabel} active rubric updated successfully.`);
-        fetchTemplates();
+        alert(`${stageLabel} active rubric updated for ${programmeCode}.`);
+        fetchTemplates(programmeCode);
       } else {
         alert('Error: ' + data.message);
       }
@@ -162,9 +212,13 @@ function Rubrics() {
     }
   };
 
-  const handleEditTemplate = (templateId) => {
-    // Navigate to React editor with template ID (string VARCHAR)
-    navigate(`/rubrics-editor?id=${encodeURIComponent(templateId)}`);
+  const handleEditTemplate = (template) => {
+    // The template's own programme travels with it. Reading it from the card
+    // rather than the page matters for a shared template, which has no programme
+    // of its own: sending the page's code would quietly claim it for that
+    // programme the next time it was saved.
+    const owner = (template.programme_code || '').trim();
+    navigate(`/rubrics-editor?id=${encodeURIComponent(template.id)}&programme=${encodeURIComponent(owner)}`);
   };
 
   const formatDate = (dateString) => {
@@ -200,18 +254,32 @@ function Rubrics() {
     <div className="rubrics">
       <h1>Marking Rubrics</h1>
       <p className="ui-page-subtitle">
-        A rubric is the marking template lecturers use. Each FYP stage — FYP 1, FYP 2 and Proposal — keeps one
-        <strong> active</strong> template, and that is the one that opens when a lecturer presses Grade.
+        A rubric is the marking template lecturers use. Each programme keeps its own set: for every
+        FYP stage — FYP 1, FYP 2 and Proposal — one template is <strong>active</strong>, and that is
+        the one that opens when a lecturer of that programme presses Grade.
       </p>
+
+      {/* Which programme these rubrics belong to. Fixed to the coordinator's own
+          rather than a picker: a rubric is marked against the programme that owns
+          it, so being able to switch only invited editing another cohort's set. */}
+      <div className="rubrics-programme-bar">
+        <span className="rubrics-programme-label">Programme</span>
+        <span className="rubrics-programme-value">{programmeCode || '—'}</span>
+        <span className="ui-hint is-tight">
+          Showing rubrics for <strong>{programmeCode || '—'}</strong> plus any shared templates.
+          Setting an active rubric applies to this programme only.
+        </span>
+      </div>
 
       <Callout tone="plain" title="Editing a template changes future marking">
         Marks already saved keep the values they were given, but any student graded after your change uses the new
-        criteria and weights. Set the updated template active only when you are happy with it.
+        criteria and weights. Set the updated template active only when you are happy with it, and only for the
+        programme it belongs to.
       </Callout>
 
       {/* Create New Template Button */}
       <button 
-        onClick={() => navigate('/rubrics-editor')} 
+        onClick={() => navigate(`/rubrics-editor?programme=${encodeURIComponent(programmeCode)}`)}
         className="create-template-btn"
         style={{ border: 'none' }}
         data-testid="create-template-btn"
@@ -236,7 +304,7 @@ function Rubrics() {
             title="No marking templates yet"
             message="Create a template for each FYP stage, then set one active per stage so lecturers can grade."
           >
-            <button className="create-template-btn" style={{ border: 'none' }} onClick={() => navigate('/rubrics-editor')}>
+            <button className="create-template-btn" style={{ border: 'none' }} onClick={() => navigate(`/rubrics-editor?programme=${encodeURIComponent(programmeCode)}`)}>
               Create your first template
             </button>
           </EmptyState>
@@ -411,13 +479,25 @@ function Rubrics() {
                   Template Stage: {displayFypStage(template.fyp_stage || template.title)}
                 </div>
 
+                {/* Which programme the template belongs to. Shared templates say
+                    so explicitly rather than leaving a blank, because a blank
+                    reads as missing data rather than as a deliberate choice. */}
+                <div className="template-programme">
+                  <span className={`template-programme-chip ${template.programme_code ? '' : 'is-shared'}`}>
+                    {template.programme_code || 'Shared'}
+                  </span>
+                  {!template.programme_code && (
+                    <span className="template-programme-hint">usable by any programme</span>
+                  )}
+                </div>
+
                 <div className="template-date">
                   Last modified: {formatDate(template.updated_at)}
                 </div>
 
                 <button
                   className="edit-btn"
-                  onClick={() => handleEditTemplate(template.id)}
+                  onClick={() => handleEditTemplate(template)}
                 >
                   Edit Template
                 </button>

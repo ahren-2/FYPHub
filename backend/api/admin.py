@@ -19,7 +19,6 @@ def create_placeholder_projects(modeladmin, request, queryset):
                     'title': 'Pending TRF Submission',
                     'student_matric_id': user.profile.student_id_no or user.username,
                     'fyp_stage': 'FYP1',
-                    'programme': user.profile.programme
                 }
             )
             if created:

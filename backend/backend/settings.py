@@ -59,9 +59,9 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'fyp_hub_db',      # Laragon MySQL 8 数据库名
-        'USER': 'root',            # Laragon 默认用户名
-        'PASSWORD': '',            # Laragon 默认密码为空
+        'NAME': 'fyp_hub_db',      # Laragon MySQL 8 database name
+        'USER': 'root',            # Laragon default username
+        'PASSWORD': '',            # Laragon's default password is empty
         'HOST': '127.0.0.1',       # Laragon MySQL 8.0.30
         'PORT': '3306',
         # The whole system runs on Malaysia time (UTC+8). Pin every connection's
@@ -130,11 +130,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 # --- Email settings (remains unchanged) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587        # 注释掉或删除这一行
-# EMAIL_USE_TLS = True    # 注释掉或删除这一行
+# EMAIL_PORT = 587        # Comment out or delete this line
+# EMAIL_USE_TLS = True    # Comment out or delete this line
 
-EMAIL_USE_SSL = True      # 【新增】改用 SSL
-EMAIL_PORT = 465          # 【新增】SSL 使用 465 端口
+EMAIL_USE_SSL = True      # [NEW] switched to SSL
+EMAIL_PORT = 465          # [NEW] SSL uses port 465
 
 EMAIL_HOST_USER = 'bcs23090021@student.uts.edu.my'
 EMAIL_HOST_PASSWORD = 'scngausbilppanod' 

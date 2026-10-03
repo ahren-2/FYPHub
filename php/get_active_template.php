@@ -1,4 +1,11 @@
 <?php
+// Returns the rubric set active for one (programme, FYP stage) pair.
+//
+// The programme is what makes this lookup unambiguous: before migration 0018 the
+// active rubric was keyed on the stage alone, so editing the FYP 1 rubric for one
+// cohort changed what every other cohort was marked against. A template whose
+// programme_id is NULL is a shared starter rubric and is used as a fallback, so a
+// programme that has not chosen its own rubric yet still opens something.
 require_once 'db_config.php';
 header('Content-Type: application/json');
 
@@ -19,13 +26,25 @@ if ($stage === '') {
     exit();
 }
 
+// The programme is optional: without it the lookup falls back to the legacy
+// behaviour of one active rubric per stage, which keeps any older caller working.
+$programmeCode = trim((string)($_GET['programme'] ?? ''));
+
 // The rubric tables are created by Django migrations (see db_config.php).
-$stmt = $conn->prepare("SELECT t.id, t.name, t.template_data, t.updated_at, a.fyp_stage
+// Ordered so a rubric set active for this exact programme wins over a shared
+// template, and a missing programme row does not turn into "no rubric at all".
+$sql = "SELECT t.id, t.name, t.template_data, t.updated_at, a.fyp_stage
     FROM rubrics_active_templates a
     INNER JOIN rubrics_templates t ON t.id = a.template_id
-    WHERE a.fyp_stage = ? AND t.is_active = 1
-    LIMIT 1");
-$stmt->bind_param('s', $stage);
+    LEFT JOIN api_programme p ON p.id = a.programme_id
+    WHERE a.fyp_stage = ?
+      AND t.is_active = 1
+      AND (? = '' OR p.code = ? OR p.code IS NULL)
+    ORDER BY (p.code = ?) DESC
+    LIMIT 1";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param('ssss', $stage, $programmeCode, $programmeCode, $programmeCode);
 $stmt->execute();
 $result = $stmt->get_result();
 

@@ -33,6 +33,10 @@ function Assessment() {
   const [loading, setLoading] = useState(true);
   const [gradingId, setGradingId] = useState(null);
   const [error, setError] = useState('');
+  // The rubric is chosen per programme as well as per stage: each cohort marks
+  // its own paper. Read from the signed-in account rather than the student row,
+  // because the marker's programme is what decides which template they may use.
+  const [programmeCode, setProgrammeCode] = useState('');
 
   useEffect(() => {
     const fetchAssessmentData = async () => {
@@ -46,6 +50,7 @@ function Assessment() {
         ]);
 
         const user = userRes.data;
+        setProgrammeCode(user.programme_code || '');
         const supervisedProjects = projectsRes.data
           .filter((project) => project.supervisor === user.id)
           .sort((a, b) => (a.student_name || '').localeCompare(b.student_name || ''));
@@ -75,7 +80,10 @@ function Assessment() {
     }
 
     try {
-      const response = await fetch(`${PHP_API_URL}/get_active_template.php?fyp_stage=${encodeURIComponent(normalizedStage)}`);
+      const params = new URLSearchParams({ fyp_stage: normalizedStage });
+      if (programmeCode) params.set('programme', programmeCode);
+
+      const response = await fetch(`${PHP_API_URL}/get_active_template.php?${params.toString()}`);
       const result = await response.json();
 
       if (result.success && result.template) {
@@ -96,7 +104,11 @@ function Assessment() {
     setGradingId(null);
 
     if (!matchedTemplate) {
-      alert(`No active rubric template found for ${displayFypStage(project.fyp_stage)}. Please ask the coordinator to set an active rubric first.`);
+      alert(
+        `No active rubric template found for ${displayFypStage(project.fyp_stage)}`
+        + (programmeCode ? ` in ${programmeCode}` : '')
+        + '. Please ask the coordinator to set an active rubric first.'
+      );
       return;
     }
 

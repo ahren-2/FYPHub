@@ -41,14 +41,22 @@ function CoordinatorDashboard() {
   const revision = Number(summary.revision_needed) || 0;
   const submittedPercent = totalStudents > 0 ? Math.round((submitted / totalStudents) * 100) : 0;
   const approvedPercent = submitted > 0 ? Math.round((approved / submitted) * 100) : 0;
+  // Which cohort these figures describe. Every count below is scoped to it, so
+  // the page names it rather than leaving the reader to assume a scope.
+  const programmeCode = summary.programme_code || '';
 
   return (
     <div className="main-content">
       <header>
         <h1>Welcome, Coordinator</h1>
         <p className="ui-page-subtitle">
-          A course-wide view of <Term tip="The form students complete to register their project title and supervisor.">TRF</Term> progress,
-          supervisor capacity and announcements. Each panel links to the full page behind it.
+          {programmeCode && (
+            <>
+              A view of <strong>{programmeCode}</strong>:{' '}
+            </>
+          )}
+          <Term tip="The form students complete to register their project title and supervisor.">TRF</Term> progress,
+          supervisor capacity and announcements for your programme. Each panel links to the full page behind it.
         </p>
       </header>
 
@@ -88,7 +96,7 @@ function CoordinatorDashboard() {
               <h3>
                 Supervisor Quota
               </h3>
-              <span className="ui-sub">First five supervisors, with remaining capacity.</span>
+              <span className="ui-sub">First five supervisors in your programme, with remaining capacity.</span>
             </div>
           </div>
           <table style={{ fontSize: '0.85rem' }}>
@@ -131,7 +139,11 @@ function CoordinatorDashboard() {
           <div className="ui-section-head">
             <div>
               <h3>Overall Summary</h3>
-              <span className="ui-sub">Every registered FYP student in your course.</span>
+              <span className="ui-sub">
+                {programmeCode
+                  ? `Every registered FYP student in ${programmeCode}.`
+                  : 'Every registered FYP student in your programme.'}
+              </span>
             </div>
           </div>
           <ul className="summary-list">

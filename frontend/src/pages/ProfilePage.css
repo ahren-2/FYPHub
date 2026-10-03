@@ -1,0 +1,169 @@
+/* --- src/pages/ProfilePage.css ----------------------------------------------
+   The account page. Two blocks: a read-only fact list, and the delete-account
+   danger zone.
+
+   The page defines its own `.btn` set rather than relying on
+   TeammateCoordinator.css and UserManagement.css, which both style a generic
+   `.btn` at global scope and are only loaded on the pages that import them.
+   Depending on them here would make this page's buttons change appearance
+   according to which other page had been visited first.
+   --------------------------------------------------------------------------- */
+
+.profile-page .profile-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px 24px;
+  margin: 0;
+}
+
+.profile-page .profile-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.profile-page .profile-fact dt {
+  color: #6c757d;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.profile-page .profile-fact dd {
+  margin: 0;
+  color: #1f2937;
+  font-size: 0.95rem;
+  /* A long email or a full name must wrap rather than widen the grid column. */
+  overflow-wrap: anywhere;
+}
+
+/* --- buttons -------------------------------------------------------------- */
+
+.profile-page .btn {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.profile-page .btn:hover:not(:disabled) { opacity: 0.88; }
+
+.profile-page .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.profile-page .btn-primary { background-color: #1e293b; color: #fff; }
+.profile-page .btn-secondary { background-color: #e5e7eb; color: #1f2937; }
+.profile-page .btn-danger { background-color: #dc3545; color: #fff; }
+
+/* --- danger zone ---------------------------------------------------------- */
+
+.profile-danger {
+  /* A hairline of red across the top of the card, so the section reads as a
+     different kind of thing from the read-only details above it without
+     repainting the card. */
+  border-top: 3px solid #dc3545;
+}
+
+.profile-danger-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.profile-danger-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.profile-danger-step-index {
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 26px;
+  text-align: center;
+}
+
+.profile-danger-step-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.profile-danger-step-body > label {
+  display: block;
+  margin-bottom: 6px;
+  color: #1f2937;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.profile-danger-input {
+  width: 100%;
+  max-width: 340px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.profile-danger-input:focus {
+  border-color: #dc3545;
+  outline: 2px solid #fecaca;
+  outline-offset: 1px;
+}
+
+.profile-danger-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background-color: #fff7f7;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.5;
+  cursor: pointer;
+  /* The label resets the block/margin the rule above applies to labels. */
+  margin-bottom: 0;
+}
+
+.profile-danger-check input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: #dc3545;
+}
+
+.profile-danger-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* On a narrow screen the two buttons stack and fill the width, which stops
+   "Delete my account permanently" from being clipped. */
+@media (max-width: 560px) {
+  .profile-danger-actions { flex-direction: column-reverse; }
+  .profile-danger-actions .btn { width: 100%; }
+  .profile-danger-input { max-width: none; }
+}

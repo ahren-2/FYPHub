@@ -176,6 +176,7 @@ export const PAGE_GUIDE = {
     title: 'Marking Rubrics',
     what: 'The marking templates lecturers use, and which one is active for each FYP stage.',
     steps: [
+      'These are your own programme\'s rubrics, plus any shared templates any programme may adopt.',
       'The Active badge marks the template currently in use for that stage.',
       'Set as Active Rubric switches a stage to a different template.',
       'Edit Template opens the rubrics editor; Rename and Delete are in the ⋮ menu.',
@@ -186,6 +187,7 @@ export const PAGE_GUIDE = {
     what: 'Build or change a marking template: sections, criteria, weights and CLO mapping.',
     steps: [
       'Coloured fields are editable — click, type, and save.',
+      'A new template is saved under your programme, or as Shared so every programme can adopt it.',
       'Each section lists its own percentage; keep the section weights adding up to the section marks.',
       'Choose the evaluator columns: Supervisor only, or Supervisor + Moderator.',
       'Save Rubrics when finished; set it active from the Marking Rubrics page.',
@@ -193,22 +195,37 @@ export const PAGE_GUIDE = {
   },
   '/course-report': {
     title: 'Course Performance Report',
-    what: 'The course-level marks, grade distribution and CO attainment summary.',
+    what: 'The marks, grade distribution and CO attainment of your programme’s whole cohort for one FYP stage.',
     steps: [
-      'Switch between FYP 1 and FYP 2 at the top.',
-      'Students with no marks show “Not graded yet” and are excluded from the pass/fail counts.',
+      'One tab per FYP stage your programme has students in — FYP 1, FYP 2 and Proposal.',
+      'The report covers the programme, not one lecturer’s own students, so every coordinator of a programme sees the same figures.',
+      'The course named on the report is the one your programme set active for that stage on the Marking Rubrics page.',
+      'Students with no marks for that stage show “Not graded” and are excluded from the pass/fail counts.',
       'CO attainment is the share of marked students who reached 40% or more for that outcome.',
       'Download CSV or XLSX to submit the report.',
     ],
   },
   '/users': {
     title: 'User Management',
-    what: 'Create accounts in bulk and manage roles.',
+    what: 'Every account in FYPHub: who exists, what role they hold and which programme they belong to.',
     steps: [
-      'Upload information creates student accounts from an Excel (.xlsx) file.',
-      'Filter by role, then use View for details or Delete to remove an account.',
+      'Upload information creates accounts from an Excel (.xlsx) file, one row per person.',
+      'Filter by role or by programme, then use View for an account’s full details.',
+      'Edit changes an account’s name, role, programme or sign-in password; Delete removes it.',
+      'A coordinator sees only their own programme here. An administrator sees every programme and every role.',
       'Transferring coordinator access to another lecturer also demotes you — this cannot be undone.',
     ],
+    tip: 'Coordinator and administrator accounts are protected: they cannot be deleted from this table, and you can never delete the account you are signed in with.',
+  },
+  '/profile': {
+    title: 'My Profile',
+    what: 'Your own account details, and — for a coordinator — the option to delete the account.',
+    steps: [
+      'Everything on this page is read-only. Your coordinator changes these details for you.',
+      'Your role and programme decide which pages and which students you can see.',
+      'A coordinator also sees a delete option at the bottom. It asks for your password because it cannot be undone.',
+    ],
+    tip: 'Deleting a coordinator account does not hand your students to anyone else. Reassign them in User Management first.',
   },
   '/archive': {
     title: 'Document Archive',
@@ -244,6 +261,16 @@ export const ROLE_GUIDE = {
       'Keep one active marking rubric for each FYP stage, and edit templates when criteria change.',
       'Set up presentation dates and venues, run the scheduler, then notify staff.',
       'Use the Course Report for grade distribution and CO attainment.',
+    ],
+  },
+  admin: {
+    label: 'Administrator journey',
+    steps: [
+      'Sign in with the administrator account — the portal opens straight on User Management.',
+      'Work through the list, filtered by role or programme, to check that every account is right.',
+      'View an account to read its details, Edit to correct a name, role, programme or password.',
+      'Create User adds one account; Upload information adds many from a spreadsheet.',
+      'This build opens no other screen to the administrator account. Anything else is a coordinator’s job.',
     ],
   },
 };

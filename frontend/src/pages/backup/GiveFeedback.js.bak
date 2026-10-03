@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
-import './TeammateLecturer.css'; // 确保引用了讲师端的 CSS
+import './TeammateLecturer.css'; // Make sure the lecturer-side CSS is imported
 
 function GiveFeedback() {
-  const { id } = useParams(); // 获取 URL 中的项目 ID
+  const { id } = useParams(); // Read the project ID from the URL
   const navigate = useNavigate();
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ function GiveFeedback() {
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        // 【修改】: 并行获取 submission 详情和当前用户信息
+        // [CHANGE] Fetch the submission details and the current user in parallel
         const [subRes, userRes] = await Promise.all([
             api.get(`/submissions/${id}/`),
             api.get('/user/me/')
@@ -29,7 +29,7 @@ function GiveFeedback() {
         setSubmission(submissionData);
         setCurrentUser(userData);
 
-        // 【核心判断】: 检查当前用户ID是否与该 submission 的导师ID匹配
+        // [CORE CHECK] See whether the current user ID matches the supervisor ID on this submission
         if (submissionData && userData) {
             setIsSupervisor(submissionData.supervisor === userData.id);
         }
@@ -53,7 +53,7 @@ function GiveFeedback() {
                 payload.new_status = newStatus;
             }
 
-            // 【最终核心确认】: 确保调用的是 'add-feedback'
+            // [FINAL CORE CHECK] Make sure 'add-feedback' is the endpoint being called
             await api.post(`submissions/${id}/add-feedback/`, payload);
 
             alert("Feedback submitted successfully!");
@@ -69,7 +69,7 @@ function GiveFeedback() {
 
   return (
     <div className="main-content">
-      {/* 【核心修改】: 添加一个包含返回按钮的 flex 容器 */}
+      {/* [CORE CHANGE] Add a flex container holding the back button */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px' }}>
           <button onClick={() => navigate(-1)} className="btn btn-secondary back-button">
               ← Back to List
@@ -81,7 +81,7 @@ function GiveFeedback() {
       </div>
 
       <div className="card">
-        {/* 第一部分：学生基本资料 (只读) */}
+        {/* Part 1: the student's basic details (read-only) */}
         <div className="form-section">
           <h4>1. Details of Student</h4>
           <div className="trf-grid">
@@ -97,7 +97,7 @@ function GiveFeedback() {
           </div>
         </div>
 
-        {/* 第二部分：项目 6 大细节 (对应队友的 6 个框) */}
+        {/* Part 2: the six main project details (matching the teammate's six boxes) */}
         <div className="form-section">
           <h4>2. Project Details</h4>
           <div className="trf-grid-3-col">

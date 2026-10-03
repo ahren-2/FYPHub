@@ -14,6 +14,48 @@
   margin: 0 0 24px 0;
 }
 
+/* Programme bar. Sits above the Callout and the Create button so the order of
+   reading is: which programme, what that means, then the actions. The programme
+   is stated rather than selected — it is always the coordinator's own. */
+.rubrics-programme-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.rubrics-programme-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
+.rubrics-programme-value {
+  min-width: 130px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #f3f4f6;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* The explanatory line takes the rest of the row and drops below the programme
+   when there is not room for both. */
+.rubrics-programme-bar .ui-hint {
+  flex: 1 1 260px;
+  min-width: 0;
+  margin: 0;
+}
+
 /* Create New Template Button */
 .create-template-btn {
   display: inline-flex;
@@ -134,6 +176,41 @@
   font-size: 13px;
   color: #475569;
   margin: 0;
+}
+
+/* Which programme a template belongs to. Kept on its own line above the
+   "Last modified" date so both cards of the same stage can be told apart at a
+   glance when two programmes' rubrics are side by side. */
+.template-programme {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 0;
+}
+
+.template-programme-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background-color: #e0e7ff;
+  color: #3730a3;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* A shared template is a different kind of thing, so it reads as neutral grey
+   rather than as another programme. */
+.template-programme-chip.is-shared {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
+.template-programme-hint {
+  font-size: 0.72rem;
+  color: #94a3b8;
 }
 
 /* Header row with ⋮ menu */

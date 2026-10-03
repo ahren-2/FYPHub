@@ -121,7 +121,7 @@
 .download-button:hover { background-color: #0056b3; }
 
 
-/* --- 【TABLE STYLES ARE NOW MERGED AND FIXED HERE】 --- */
+/* --- [TABLE STYLES ARE NOW MERGED AND FIXED HERE] --- */
 
 .widget .timetable-container {
   overflow-x: auto;
@@ -137,7 +137,7 @@
   font-size: 14px;
 }
 
-/* --- 【THE CORE FIX FOR BORDERS】 --- */
+/* --- [THE CORE FIX FOR BORDERS] --- */
 /* This rule now applies to ALL tables inside a widget */
 .widget .schedule-table th, 
 .widget .schedule-table td,

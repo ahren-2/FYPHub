@@ -22,7 +22,7 @@ function ManageAnnouncements() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // 【修正】: 移除了 '/api' 前缀
+            // [FIX] The '/api' prefix has been removed
             await api.post('/announcements/', { title, content });
             alert("Published!");
             setTitle(''); setContent('');
@@ -33,7 +33,7 @@ function ManageAnnouncements() {
     const handleDelete = async (id) => {
         if (window.confirm("Delete this?")) {
             try {
-                // 【修正】: 移除了 '/api' 前缀
+                // [FIX] The '/api' prefix has been removed
                 await api.delete(`/announcements/${id}/`);
                 fetchAnnouncements();
             } catch (err) {
@@ -47,13 +47,13 @@ function ManageAnnouncements() {
         setIsModalOpen(true);
     };
 
-    // 2. 关闭编辑弹窗的函数
+    // 2. Function that closes the edit modal
     const handleCloseEditModal = () => {
         setIsModalOpen(false);
         setEditingAnn(null);
     };
 
-    // 3. 提交更新的函数
+    // 3. Function that submits the update
     const handleUpdate = async () => {
         if (!editingAnn) return;
         try {
@@ -106,10 +106,6 @@ function ManageAnnouncements() {
                 </div>
                 <div className="card">
                     <h3>Published Announcements</h3>
-                    <p className="ui-hint" style={{ marginTop: 0 }}>
-                        {announcements.length} announcement{announcements.length === 1 ? '' : 's'} published. Editing
-                        updates the notice everywhere; deleting removes it for everyone.
-                    </p>
                     <div className="announcement-manage-list">
                         {announcements.length === 0 && (
                             <EmptyState

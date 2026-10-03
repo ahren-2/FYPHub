@@ -5,7 +5,8 @@ import './MainLayout.css';
 import HelpCenter, { NAV_LINKS } from '../components/HelpCenter';
 import {
   FiGrid, FiFileText, FiMessageSquare, FiVolume2, FiLogOut, FiClock, FiUsers,
-  FiArchive, FiCheckCircle, FiRepeat, FiSettings, FiEdit3, FiBarChart2, FiHelpCircle
+  FiArchive, FiCheckCircle, FiRepeat, FiSettings, FiEdit3, FiBarChart2, FiHelpCircle,
+  FiUser
 } from 'react-icons/fi';
 
 // An icon per destination. The list of destinations itself lives in
@@ -30,24 +31,37 @@ const ICONS = {
   '/milestones': <FiCheckCircle />,
   '/my-availability': <FiClock />,
   '/present-schedule': <FiClock />,
+  '/profile': <FiUser />,
 };
 
 // Grouping the menu makes it obvious which links belong to which part of the
 // job, instead of presenting one long list.
+//
+// The administrator gets one section and one destination on purpose: the role
+// exists to maintain accounts across every programme, and no other screen has
+// been opened to it. Everything else in the app still tests for a coordinator,
+// a lecturer or a student, so an administrator clicking through to them would be
+// refused by the API anyway — better to not offer the link.
 const NAV_SECTIONS = {
   student: [
     { title: 'Overview', paths: ['/dashboard', '/announcements'] },
     { title: 'My FYP', paths: ['/submit-trf', '/feedback', '/my-schedule'] },
+    { title: 'Account', paths: ['/profile'] },
   ],
   lecturer: [
     { title: 'Overview', paths: ['/dashboard', '/announcements'] },
     { title: 'My Students', paths: ['/trf-review', '/all-submissions', '/assessment', '/milestones'] },
     { title: 'Presentations', paths: ['/my-availability', '/present-schedule'] },
+    { title: 'Account', paths: ['/profile'] },
   ],
   coordinator: [
     { title: 'Overview', paths: ['/dashboard', '/manage-announcements', '/project-overview'] },
     { title: 'Students & Staff', paths: ['/student-list', '/supervisor-quota', '/users'] },
     { title: 'Marking & Presentations', paths: ['/rubrics', '/course-report', '/timetable-scheduling'] },
+    { title: 'Account', paths: ['/profile'] },
+  ],
+  admin: [
+    { title: 'Account maintenance', paths: ['/users'] },
   ],
 };
 
@@ -55,6 +69,7 @@ const ROLE_LABELS = {
   student: 'Student',
   lecturer: 'Lecturer',
   coordinator: 'Coordinator',
+  admin: 'Administrator',
 };
 
 function buildSections(viewMode) {

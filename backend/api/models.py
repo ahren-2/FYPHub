@@ -8,7 +8,16 @@ class Programme(models.Model):
         return self.name
 
 class Profile(models.Model):
-    ROLE_CHOICES = (('student', 'Student'), ('lecturer', 'Lecturer'), ('coordinator', 'Coordinator'))
+    # `admin` is the account-maintenance role, added for handover: it exists to
+    # look after accounts, not to run a course. It is deliberately NOT a
+    # coordinator, so every course-level screen and endpoint that tests
+    # `role == 'coordinator'` stays closed to it — the only workspace it opens is
+    # User Management, and `UserViewSet` is the one read path that treats it
+    # specially, by showing accounts from every programme instead of one cohort.
+    ROLE_CHOICES = (
+        ('student', 'Student'), ('lecturer', 'Lecturer'),
+        ('coordinator', 'Coordinator'), ('admin', 'Administrator'),
+    )
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255, blank=True, verbose_name="Full Name")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
@@ -36,6 +45,24 @@ class FYPProject(models.Model):
     examiner = models.ForeignKey(User, related_name='examined_projects', on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'profile__role': 'lecturer'})
     programme = models.ForeignKey(Programme, on_delete=models.SET_NULL, null=True, blank=True)
     fyp_stage = models.CharField(max_length=20, choices=FYP_STAGE_CHOICES, default='FYP1')
+
+    def save(self, *args, **kwargs):
+        """A project belongs to the programme of its student, always.
+
+        The programme is a copy of the student's, kept for convenient filtering,
+        so it is derived here rather than trusted from the caller. The two used to
+        drift: 14 students had a profile on the legacy 'General' programme while
+        their project row pointed at BCS/BDM/BMD/BID, and every programme-filtered
+        screen disagreed about who belonged where as a result.
+
+        Only synced when the student actually holds a programme, so a project is
+        never silently blanked while a student's programme is still unset.
+        """
+        profile = getattr(self.student, 'profile', None)
+        if profile is not None and profile.programme_id is not None:
+            self.programme_id = profile.programme_id
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.title
 
@@ -178,6 +205,21 @@ class LecturerPreference(models.Model):
 #   * the timestamp columns are converted to MySQL TIMESTAMP by migration 0012
 #     so they keep their DEFAULT CURRENT_TIMESTAMP / ON UPDATE CURRENT_TIMESTAMP
 #     behaviour for PHP, which relies on the database to fill them in.
+#
+# Programme scoping (migration 0018)
+# ----------------------------------
+# A marking rubric belongs to one programme. Each programme keeps its own set of
+# templates and its own "active template per FYP stage", because the level
+# descriptors, criteria weights and even the course code differ between
+# programmes — BCS marks CSS3714 while BDM marks a different paper. One shared
+# active template per stage would mean editing the rubric for one cohort silently
+# changed what every other cohort was marked against.
+#
+# `programme` is nullable on purpose, and is the one place a null is meaningful:
+# a template with no programme is a library/starter template that any programme
+# may fall back to when it has not set its own active rubric yet. The active
+# mapping (`RubricActiveTemplate`) is unique per (programme, stage), so exactly
+# one template is live for a cohort at a time.
 # ---------------------------------------------------------------------------
 
 class RubricTemplate(models.Model):
@@ -189,6 +231,11 @@ class RubricTemplate(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     version = models.IntegerField(default=1)
     is_active = models.BooleanField(default=True)
+    # Null means "starter template, available to every programme".
+    programme = models.ForeignKey(
+        Programme, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='rubric_templates',
+    )
 
     class Meta:
         db_table = 'rubrics_templates'
@@ -210,6 +257,13 @@ class RubricMarks(models.Model):
     # would have generated implicitly, which keeps `makemigrations` quiet.
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     template = models.ForeignKey(RubricTemplate, on_delete=models.CASCADE, db_column='template_id')
+    # The programme the marked student belongs to. Nullable only so that a
+    # database predating migration 0018 can be upgraded without a guess; the
+    # migration backfills every row it can and the write paths always set it.
+    programme = models.ForeignKey(
+        Programme, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='rubric_marks',
+    )
     student_id = models.CharField(max_length=50, verbose_name="Student ID")
     student_name = models.CharField(max_length=255)
     supervisor = models.CharField(max_length=255, null=True, blank=True)
@@ -242,8 +296,19 @@ class RubricMarks(models.Model):
         return f'{self.student_name} — {self.template_id}'
 
 class RubricActiveTemplate(models.Model):
-    """The rubric selected as active for one FYP stage (one row per stage)."""
-    fyp_stage = models.CharField(max_length=30, primary_key=True, verbose_name="FYP Stage")
+    """The rubric selected as active for one (programme, FYP stage) pair.
+
+    Was keyed on `fyp_stage` alone, which made the active rubric a single global
+    choice per stage and forced every programme to be marked against the same
+    template. The surrogate `id` replaces that primary key so a unique constraint
+    can cover both columns — PHP's `ON DUPLICATE KEY UPDATE` needs a unique key to
+    fire on, and a composite primary key does not reliably trigger it in MySQL.
+    """
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    programme = models.ForeignKey(
+        Programme, on_delete=models.CASCADE, related_name='active_rubric_templates',
+    )
+    fyp_stage = models.CharField(max_length=30, verbose_name="FYP Stage")
     template = models.ForeignKey(RubricTemplate, on_delete=models.CASCADE, db_column='template_id')
     updated_by = models.CharField(max_length=100, default='coordinator')
     updated_at = models.DateTimeField(auto_now=True)
@@ -252,6 +317,12 @@ class RubricActiveTemplate(models.Model):
         db_table = 'rubrics_active_templates'
         verbose_name = 'Active rubric template'
         verbose_name_plural = 'Active rubric templates'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['programme', 'fyp_stage'],
+                name='uniq_active_rubric_per_programme_stage',
+            ),
+        ]
 
     def __str__(self):
-        return f'{self.fyp_stage} -> {self.template_id}'
+        return f'{self.programme.code} {self.fyp_stage} -> {self.template_id}'

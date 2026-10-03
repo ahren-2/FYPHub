@@ -1,8 +1,8 @@
 /* ==========================================================================
-   TeammateLecturer.css - 整合讲师/考官端所有业务样式
+   TeammateLecturer.css - consolidates every business style for the lecturer/examiner side
    ========================================================================== */
 
-/* --- 1. 基础卡片与布局 --- */
+/* --- 1. Base card and layout --- */
 .main-content {
     padding: 30px;
     text-align: left;
@@ -11,7 +11,7 @@
 .card {
     background-color: #ffffff;
     padding: 25px 30px;
-    border-radius: 16px; /* 采用考官端的 16px 大圆角 */
+    border-radius: 16px; /* Uses the examiner side's large 16px corner radius */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     margin-bottom: 25px;
     border: 1px solid #edf2f7;
@@ -23,7 +23,7 @@
     gap: 25px;
 }
 
-/* --- 2. 专业表格样式 --- */
+/* --- 2. Professional table styles --- */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -33,7 +33,7 @@ table {
 table th {
     text-align: left;
     padding: 15px 10px;
-    color: #1A3E5F; /* 采用主题深蓝色 */
+    color: #1A3E5F; /* Uses the theme's dark blue */
     font-size: 0.85rem;
     text-transform: uppercase;
     border-bottom: 2px solid #f1f4f8;
@@ -51,7 +51,7 @@ table tr:last-child td {
     border-bottom: none;
 }
 
-/* --- 3. 状态标签 (Status Badges) --- */
+/* --- 3. Status badges --- */
 .status {
     padding: 5px 12px;
     border-radius: 20px;
@@ -65,7 +65,7 @@ table tr:last-child td {
 .status.revision { background-color: #f8d7da; color: #842029; }
 .status.approved, .status.reviewed { background-color: #198754; color: #ffffff; }
 
-/* --- 4. 按钮样式 --- */
+/* --- 4. Button styles --- */
 .btn {
     padding: 8px 18px;
     border-radius: 8px;
@@ -95,7 +95,7 @@ table tr:last-child td {
     background-color: #f0f4f8;
 }
 
-/* --- 5. 评审页面专用 (Give Feedback) --- */
+/* --- 5. Specific to the review page (Give Feedback) --- */
 .detail-item {
     margin-bottom: 15px;
 }
@@ -107,7 +107,7 @@ table tr:last-child td {
     margin-bottom: 4px;
 }
 
-/* 项目细节 6 个灰色方块 */
+/* The six grey boxes holding the project details */
 .detail-item-box {
     background-color: #f8fafc;
     padding: 15px;
@@ -129,7 +129,7 @@ table tr:last-child td {
     margin: 0;
 }
 
-/* --- 6. 里程碑页面专用 (Milestones) --- */
+/* --- 6. Specific to the milestone page (Milestones) --- */
 .student-list-item {
     display: flex;
     justify-content: space-between;
@@ -186,17 +186,17 @@ table tr:last-child td {
 .back-button {
   padding: 10px 15px;
   font-weight: 500;
-  white-space: nowrap; /* 防止按钮文字换行 */
+  white-space: nowrap; /* Stop the button text from wrapping */
 }
 
-/* --- 在 TeammateLecturer.css 文件末尾添加 --- */
+/* --- Appended at the end of TeammateLecturer.css --- */
 
-/* 筛选器容器样式 (参考您的 Dashboard.css) */
+/* Filter container styles (based on your Dashboard.css) */
 .filters-wrapper {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  /* 我们把它放在卡片内部，所以不需要下边框和外边距 */
+  /* It sits inside the card, so it needs no bottom border and no outer margin */
   padding-bottom: 20px; 
 }
 
@@ -207,11 +207,11 @@ table tr:last-child td {
 }
 
 .course-filter-container span {
-    font-weight: 600; /* 字体加粗一些 */
-    color: #4a5568;  /* 使用讲师端的主题色系 */
+    font-weight: 600; /* A slightly bolder font */
+    color: #4a5568;  /* Uses the lecturer side's theme palette */
 }
 
-/* 筛选器按钮样式 (参考您的 Dashboard.css 并微调颜色) */
+/* Filter button styles (based on your Dashboard.css, with tweaked colours) */
 .course-filter-btn {
   padding: 8px 16px;
   border: 1px solid #cbd5e1;
@@ -229,10 +229,10 @@ table tr:last-child td {
 }
 
 .course-filter-btn.active {
-  background-color: #1A3E5F; /* 使用您在 TeammateLecturer.css 中定义的主题深蓝色 */
+  background-color: #1A3E5F; /* Uses the theme dark blue defined in TeammateLecturer.css */
   color: white;
   border-color: #1A3E5F;
-  box-shadow: 0 2px 5px rgba(26, 62, 95, 0.2); /* 阴影颜色也与主题色匹配 */
+  box-shadow: 0 2px 5px rgba(26, 62, 95, 0.2); /* The shadow colour matches the theme colour too */
 }
 /* --- Assessment page --- */
 .btn:disabled {

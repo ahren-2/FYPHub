@@ -26,6 +26,7 @@ $supervisor = trim((string)($input['supervisor'] ?? ''));
 $examiner = trim((string)($input['examiner'] ?? ''));
 $projectName = trim((string)($input['project_name'] ?? ''));
 $course = trim((string)($input['course'] ?? ''));
+$programmeCode = trim((string)($input['programme'] ?? ''));
 $fypStageRaw = trim((string)($input['fyp_stage'] ?? ''));
 $fypStage = normalize_stage($fypStageRaw);
 if ($fypStage === '') $fypStage = $fypStageRaw;
@@ -46,6 +47,42 @@ if (!in_array($status, ['draft', 'submitted', 'finalized'], true)) {
     $status = 'draft';
 }
 
+// programme_id is added by migration 0018. Resolve the code to an id, and fall
+// back to reading it off the template when the caller did not send one, so a
+// mark row is attributed to the same programme as the rubric it was marked
+// against rather than being left unattributed.
+$hasProgrammeColumn = false;
+$columnCheck = $conn->query("SELECT 1 FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'rubrics_marks' AND COLUMN_NAME = 'programme_id' LIMIT 1");
+if ($columnCheck && $columnCheck->num_rows > 0) {
+    $hasProgrammeColumn = true;
+}
+
+$programmeId = null;
+if ($hasProgrammeColumn) {
+    if ($programmeCode !== '') {
+        $programmeStmt = $conn->prepare('SELECT id FROM api_programme WHERE code = ? LIMIT 1');
+        $programmeStmt->bind_param('s', $programmeCode);
+        $programmeStmt->execute();
+        $programmeRow = $programmeStmt->get_result()->fetch_assoc();
+        $programmeStmt->close();
+        if ($programmeRow) {
+            $programmeId = (int)$programmeRow['id'];
+        }
+    }
+
+    if ($programmeId === null) {
+        $templateStmt = $conn->prepare('SELECT programme_id FROM rubrics_templates WHERE id = ? LIMIT 1');
+        $templateStmt->bind_param('s', $templateId);
+        $templateStmt->execute();
+        $templateRow = $templateStmt->get_result()->fetch_assoc();
+        $templateStmt->close();
+        if ($templateRow && $templateRow['programme_id'] !== null) {
+            $programmeId = (int)$templateRow['programme_id'];
+        }
+    }
+}
+
 $existingStmt = $conn->prepare("SELECT id FROM rubrics_marks WHERE template_id = ? AND student_id = ? LIMIT 1");
 $existingStmt->bind_param("ss", $templateId, $studentId);
 $existingStmt->execute();
@@ -54,12 +91,30 @@ $existingStmt->close();
 
 if ($existing) {
     // updated_at is maintained by the column's ON UPDATE CURRENT_TIMESTAMP.
-    $stmt = $conn->prepare("UPDATE rubrics_marks SET student_name = ?, supervisor = ?, examiner = ?, project_name = ?, course = ?, fyp_stage = ?, marks_data = ?, section_totals = ?, co_attainment = ?, criterion_marks = ?, total_score = ?, evaluated_by = ?, status = ? WHERE id = ?");
-    $stmt->bind_param("ssssssssssdssi", $studentName, $supervisor, $examiner, $projectName, $course, $fypStage, $marksData, $sectionTotals, $coAttainment, $criterionMarks, $totalScore, $evaluatedBy, $status, $existing['id']);
+    if ($hasProgrammeColumn) {
+        // programme_id is only overwritten when one was resolved, so re-saving a
+        // mark row from a client that sends no programme does not blank the
+        // attribution set the first time.
+        if ($programmeId !== null) {
+            $stmt = $conn->prepare("UPDATE rubrics_marks SET student_name = ?, supervisor = ?, examiner = ?, project_name = ?, course = ?, fyp_stage = ?, marks_data = ?, section_totals = ?, co_attainment = ?, criterion_marks = ?, total_score = ?, evaluated_by = ?, status = ?, programme_id = ? WHERE id = ?");
+            $stmt->bind_param("ssssssssssdssii", $studentName, $supervisor, $examiner, $projectName, $course, $fypStage, $marksData, $sectionTotals, $coAttainment, $criterionMarks, $totalScore, $evaluatedBy, $status, $programmeId, $existing['id']);
+        } else {
+            $stmt = $conn->prepare("UPDATE rubrics_marks SET student_name = ?, supervisor = ?, examiner = ?, project_name = ?, course = ?, fyp_stage = ?, marks_data = ?, section_totals = ?, co_attainment = ?, criterion_marks = ?, total_score = ?, evaluated_by = ?, status = ? WHERE id = ?");
+            $stmt->bind_param("ssssssssssdssi", $studentName, $supervisor, $examiner, $projectName, $course, $fypStage, $marksData, $sectionTotals, $coAttainment, $criterionMarks, $totalScore, $evaluatedBy, $status, $existing['id']);
+        }
+    } else {
+        $stmt = $conn->prepare("UPDATE rubrics_marks SET student_name = ?, supervisor = ?, examiner = ?, project_name = ?, course = ?, fyp_stage = ?, marks_data = ?, section_totals = ?, co_attainment = ?, criterion_marks = ?, total_score = ?, evaluated_by = ?, status = ? WHERE id = ?");
+        $stmt->bind_param("ssssssssssdssi", $studentName, $supervisor, $examiner, $projectName, $course, $fypStage, $marksData, $sectionTotals, $coAttainment, $criterionMarks, $totalScore, $evaluatedBy, $status, $existing['id']);
+    }
 } else {
     // evaluated_at / updated_at are filled in by their column defaults.
-    $stmt = $conn->prepare("INSERT INTO rubrics_marks (template_id, student_id, student_name, supervisor, examiner, project_name, course, fyp_stage, marks_data, section_totals, co_attainment, criterion_marks, total_score, evaluated_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssssssssssdss", $templateId, $studentId, $studentName, $supervisor, $examiner, $projectName, $course, $fypStage, $marksData, $sectionTotals, $coAttainment, $criterionMarks, $totalScore, $evaluatedBy, $status);
+    if ($hasProgrammeColumn) {
+        $stmt = $conn->prepare("INSERT INTO rubrics_marks (template_id, student_id, student_name, supervisor, examiner, project_name, course, fyp_stage, marks_data, section_totals, co_attainment, criterion_marks, total_score, evaluated_by, status, programme_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssssssssssdssi", $templateId, $studentId, $studentName, $supervisor, $examiner, $projectName, $course, $fypStage, $marksData, $sectionTotals, $coAttainment, $criterionMarks, $totalScore, $evaluatedBy, $status, $programmeId);
+    } else {
+        $stmt = $conn->prepare("INSERT INTO rubrics_marks (template_id, student_id, student_name, supervisor, examiner, project_name, course, fyp_stage, marks_data, section_totals, co_attainment, criterion_marks, total_score, evaluated_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssssssssssdss", $templateId, $studentId, $studentName, $supervisor, $examiner, $projectName, $course, $fypStage, $marksData, $sectionTotals, $coAttainment, $criterionMarks, $totalScore, $evaluatedBy, $status);
+    }
 }
 
 if ($stmt->execute()) {

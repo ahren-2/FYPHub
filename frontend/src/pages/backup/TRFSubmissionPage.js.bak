@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import './TeammateStudent.css'; // 确保你已经粘贴了之前帮你整合的 CSS
+import './TeammateStudent.css'; // Make sure you have pasted in the CSS that was merged for you earlier
 
 function TRFSubmissionPage() {
   const navigate = useNavigate();
   const [lecturers, setLecturers] = useState([]);
-  const [loading, setLoading] = useState(true); // 【修改】初始加载状态
-  const [isSubmitting, setIsSubmitting] = useState(false); // 【新增】提交按钮的加载状态
+  const [loading, setLoading] = useState(true); // [CHANGE] initial loading state
+  const [isSubmitting, setIsSubmitting] = useState(false); // [NEW] loading state for the submit button
   const [formData, setFormData] = useState({
     student_name: '',
     student_id_no: '',
@@ -18,7 +18,7 @@ function TRFSubmissionPage() {
     proposed_project_title: '',
     supervisor_id: '',
     co_supervisor_id: '',
-    // 补全 Section 3 的 6 个大框
+    // Fill in the six large boxes of Section 3
     detail_description: '',
     detail_problem: '',
     detail_value: '',
@@ -30,11 +30,11 @@ function TRFSubmissionPage() {
   useEffect(() => {
     const fetchInitialData = async () => {
         try {
-            // 并行获取讲师列表、当前用户信息、以及可能已存在的提交记录
+            // Fetch the lecturer list, the current user and any existing submission in parallel
             const [lecturersRes, userRes, submissionRes] = await Promise.all([
                 api.get('/eligible-supervisors/'),
                 api.get('/user/me/'),
-                api.get('/submissions/') // 这个接口只会返回当前学生自己的提交
+                api.get('/submissions/') // This endpoint returns only the current student's own submissions
             ]);
             
             setLecturers(lecturersRes.data);
@@ -43,15 +43,15 @@ function TRFSubmissionPage() {
             const existingSubmission = submissionRes.data.length > 0 ? submissionRes.data[0] : null;
 
             if (existingSubmission) {
-                // 如果学生已经提交过，用已有的数据填充整个表单
+                // If the student has already submitted, fill the whole form with the existing data
                 setFormData({
                     ...existingSubmission,
-                    // 后端返回的是 supervisor ID, 我们需要把它赋值给 supervisor_id 以便下拉框正确显示
+                    // The backend returns a supervisor ID, so assign it to supervisor_id for the dropdown to display correctly
                     supervisor_id: existingSubmission.supervisor || '',
                     co_supervisor_id: existingSubmission.co_supervisor || ''
                 });
             } else {
-                // 如果是第一次提交，只预填姓名和学号
+                // On a first submission, pre-fill only the name and student ID
                 setFormData(prev => ({
                     ...prev,
                     student_name: currentUser.full_name || '',
@@ -68,39 +68,39 @@ function TRFSubmissionPage() {
     };
     
     fetchInitialData();
-  }, []); // 这个 effect 只在页面加载时运行一次
+  }, []); // This effect runs only once, when the page loads
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // 【核心修改 #2】: 升级 handleSubmit，支持创建和更新
+  // [CORE CHANGE #2] Upgrade handleSubmit to support both creating and updating
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const submissionId = formData.id; // 如果是编辑，formData 中会有 id
+      const submissionId = formData.id; // When editing, formData carries an id
       
-      // 准备要发送给后端的数据
+      // Prepare the data to send to the backend
       const payload = {
           ...formData,
           supervisor: formData.supervisor_id,
           co_supervisor: formData.co_supervisor_id || null,
       };
-      // 清理掉前端专用的字段
+      // Strip out the front-end-only fields
       delete payload.supervisor_id;
       delete payload.co_supervisor_id;
       
       if (submissionId) {
-          // 如果有 ID，说明是更新操作，使用 PUT 方法
+          // An ID means an update, so use PUT
           await api.put(`/submissions/${submissionId}/`, payload);
           alert("TRF updated successfully!");
       } else {
-          // 如果没有 ID，说明是新建操作，使用 POST 方法
+          // No ID means a new record, so use POST
           await api.post('/submissions/', payload);
       }
-      navigate('/dashboard'); // 成功后统一跳转回 Dashboard
+      navigate('/dashboard'); // On success always navigate back to the dashboard
       
     } catch (err) {
       console.error("Submission failed:", err.response?.data || err);
@@ -128,7 +128,7 @@ function TRFSubmissionPage() {
           <div className="form-section">
             <h4>Details of Student</h4>
             <div className="trf-grid">
-              {/* 左侧学生信息 */}
+              {/* Student information on the left */}
               <div className="grid-col">
                 <div className="form-group-inline">
                   <label>Student Name:</label>
@@ -152,7 +152,7 @@ function TRFSubmissionPage() {
                 </div>
               </div>
 
-              {/* 右侧项目信息 */}
+              {/* Project information on the right */}
               <div className="grid-col">
                 <div className="form-group">
                   <label>Project Category (tick one):</label>

@@ -256,8 +256,17 @@ function AssessmentGrade() {
 
         const studentId = loadedProject.student_matric_id || String(loadedProject.student || '');
         try {
+          // The programme narrows the saved marks to this cohort. Marks are stored
+          // per (template, student), and two programmes can now hold a template of
+          // the same stage, so without it a lookup could return another cohort's row.
+          const marksParams = new URLSearchParams({
+            student_id: studentId,
+            template_id: templateId,
+          });
+          if (userRes.data.programme_code) marksParams.set('programme', userRes.data.programme_code);
+
           const savedMarksRes = await fetch(
-            `${PHP_API_URL}/list_marks.php?student_id=${encodeURIComponent(studentId)}&template_id=${encodeURIComponent(templateId)}`
+            `${PHP_API_URL}/list_marks.php?${marksParams.toString()}`
           ).then((res) => res.json());
 
           if (savedMarksRes.success && Array.isArray(savedMarksRes.marks) && savedMarksRes.marks.length > 0) {
@@ -356,6 +365,9 @@ function AssessmentGrade() {
         project_name: project.title || '',
         course: template.course || '',
         fyp_stage: template.fyp_stage || project.fyp_stage || '',
+        // Recorded on the mark row so a mark is attributable to a cohort without
+        // having to resolve the student's profile later.
+        programme: currentUser?.programme_code || '',
         marks_data: {
           ...template,
           section_totals: sectionTotalsPayload,

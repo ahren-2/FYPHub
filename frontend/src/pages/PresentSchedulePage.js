@@ -12,7 +12,7 @@ function PresentSchedulePage({ hideHeader = false }) {
 
   const initData = React.useCallback(async () => {
     try {
-      // 【核心修正】: 移除了所有 '/api' 前缀
+      // [CORE FIX] Removed every '/api' prefix
       const [userRes, schRes] = await Promise.all([
         api.get('/user/me/'),
         api.get('/bookings/')
@@ -25,7 +25,7 @@ function PresentSchedulePage({ hideHeader = false }) {
 
   useEffect(() => { initData(); }, [initData]);
 
-  // 【修复点】：严谨的讲师身份识别
+  // [FIX] Strict lecturer identification
   const getLecturerRole = (slot) => {
     if (!currentUser || !slot.lecturer) return 'Guest';
     const myId = Number(currentUser.id);
@@ -40,12 +40,12 @@ function PresentSchedulePage({ hideHeader = false }) {
   const handleExport = async () => {
     setExporting(true);
     try {
-        // 【核心修正】: 调用新的导出接口
+        // [CORE FIX] Call the new export endpoint
         const response = await api.get('/export-students-excel/', { responseType: 'blob' });
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        // 从响应头获取文件名或使用默认名
+        // Take the file name from the response headers, or fall back to a default
         const contentDisposition = response.headers['content-disposition'];
         let filename = 'FYP_Schedule.xlsx';
         if (contentDisposition) {
@@ -88,7 +88,7 @@ function PresentSchedulePage({ hideHeader = false }) {
               {currentUser?.role !== 'student' && ' The role column shows your part in each slot.'}
             </p>
           </div>
-          {/* 所有角色可见的导出按钮 */}
+          {/* Export button visible to every role */}
           <button onClick={handleExport} className="btn-submit" disabled={exporting} style={{ backgroundColor: '#28a745', border:'none' }} title="Download this timetable as a spreadsheet">
             {exporting ? 'Generating...' : '📥 Export to Excel'}
           </button>
@@ -99,7 +99,7 @@ function PresentSchedulePage({ hideHeader = false }) {
             <thead>
               <tr>
                 <th>Date</th><th>Time</th><th>Venue</th><th>ID</th><th>Student</th><th>Project Title</th>
-                {/* 核心细节：学生不看角色列 */}
+                {/* Key detail: students must not see the role column */}
                 {currentUser?.role !== 'student' && (
                   <th>
                     Your Role

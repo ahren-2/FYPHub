@@ -40,7 +40,7 @@ function SupervisorQuota() {
             await api.put(`/supervisors/quotas/${selectedLec.id}/`, { quota_total: parseInt(newQuotaValue) });
             alert("Quota updated!");
             setShowModal(false);
-            fetchQuotas(); // 刷新列表
+            fetchQuotas(); // Refresh the list
         } catch (err) { 
             alert("Failed to update."); 
             console.error("Quota update error:", err);

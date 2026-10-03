@@ -13,6 +13,7 @@ export const NAV_LINKS = {
     { name: 'Submit TRF', path: '/submit-trf', hint: 'Register your project title' },
     { name: 'Feedback', path: '/feedback', hint: 'Comments from your supervisor' },
     { name: 'My Schedule', path: '/my-schedule', hint: 'Your presentation slot' },
+    { name: 'My Profile', path: '/profile', hint: 'Your account details' },
   ],
   lecturer: [
     { name: 'Dashboard', path: '/dashboard', hint: 'Your students and duties' },
@@ -23,6 +24,7 @@ export const NAV_LINKS = {
     { name: 'Milestones', path: '/milestones', hint: 'Verify weekly progress' },
     { name: 'My Availability', path: '/my-availability', hint: 'Book presentation slots' },
     { name: 'Present Schedule', path: '/present-schedule', hint: 'Full timetable' },
+    { name: 'My Profile', path: '/profile', hint: 'Your account details' },
   ],
   coordinator: [
     { name: 'Dashboard', path: '/dashboard', hint: 'Course status at a glance' },
@@ -34,6 +36,13 @@ export const NAV_LINKS = {
     { name: 'Marking Rubrics', path: '/rubrics', hint: 'Active marking templates' },
     { name: 'Course Report', path: '/course-report', hint: 'Grades and CO attainment' },
     { name: 'User Management', path: '/users', hint: 'Accounts and roles' },
+    { name: 'My Profile', path: '/profile', hint: 'Your account, and deleting it' },
+  ],
+  // One destination: the administrator maintains accounts and nothing else yet.
+  // This list is what the sidebar is built from, so leaving it out would give the
+  // role an empty menu.
+  admin: [
+    { name: 'User Management', path: '/users', hint: 'Every account, in every programme' },
   ],
 };
 

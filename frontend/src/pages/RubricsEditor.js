@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import api from '../api';
+import { Callout } from '../components';
 import './RubricsEditor.css';
 
 const PHP_API_URL = process.env.REACT_APP_PHP_API_URL || 'http://localhost/php';
@@ -155,13 +157,67 @@ function RubricsEditor() {
   const rawTemplateId = searchParams.get('id');
   const templateId = rawTemplateId && rawTemplateId.trim() !== '' ? rawTemplateId.trim() : null;
   const isEditMode = templateId !== null;
+  // Which programme the template being edited belongs to. A template is saved
+  // under one programme: that is what decides which cohort is marked against it,
+  // and which programme's Active slot it can occupy. The Rubrics page carries it
+  // through, but it is only a seed — the authoritative value is fixed below.
+  const programmeFromUrl = (searchParams.get('programme') || '').trim();
 
   const [template, setTemplate] = useState(() => normalizeTemplate(DEFAULT_TEMPLATE));
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
+  // The signed-in coordinator's own programme. Rubrics are kept per programme,
+  // so this is the only programme they may save one under. `known` records
+  // whether the answer actually arrived, which is different from an account that
+  // simply has no programme: nothing is pinned until the answer is in.
+  const [ownProgramme, setOwnProgramme] = useState('');
+  const [ownProgrammeKnown, setOwnProgrammeKnown] = useState(false);
+  // The programme the loaded template is stored under: '' means shared, and null
+  // means "not loaded yet", which is a distinction the lock below depends on.
+  const [loadedProgramme, setLoadedProgramme] = useState(isEditMode ? null : '');
+  // Set when the link points at a rubric owned by a different programme.
+  const [lockedOut, setLockedOut] = useState(false);
+  // Blank means "shared template", which any programme may adopt as its active
+  // rubric. That is the only null the schema treats as meaningful.
+  const [programmeCode, setProgrammeCode] = useState(programmeFromUrl);
 
   useEffect(() => {
-    if (isEditMode) loadTemplate(templateId);
+    const fetchOwnProgramme = async () => {
+      try {
+        const meRes = await api.get('/user/me/');
+        setOwnProgramme((meRes.data?.programme_code || '').trim());
+        setOwnProgrammeKnown(true);
+      } catch (error) {
+        console.error('Could not read the signed-in programme:', error);
+      }
+    };
+    fetchOwnProgramme();
+  }, []);
+
+  // The programme is pinned here rather than chosen. A new template belongs to
+  // the coordinator's own programme (or Shared, if they deliberately pick it); an
+  // existing one keeps the programme it already has. A rubric owned by another
+  // programme is refused outright instead of being quietly re-homed into this
+  // one, which is what a programme dropdown used to allow.
+  useEffect(() => {
+    if (!ownProgrammeKnown) return;
+    if (!isEditMode) {
+      setProgrammeCode(ownProgramme);
+      return;
+    }
+    if (loadedProgramme === null) return;
+    if (loadedProgramme === '' || loadedProgramme === ownProgramme) {
+      setProgrammeCode(loadedProgramme);
+    } else {
+      setLockedOut(true);
+    }
+  }, [ownProgramme, ownProgrammeKnown, loadedProgramme, isEditMode]);
+
+  useEffect(() => {
+    // The null check is inline rather than reading `isEditMode`, which is derived
+    // from `templateId` in the same render — referencing it here would add a
+    // dependency that changes nothing while tripping the exhaustive-deps rule.
+    if (templateId) loadTemplate(templateId);
   }, [templateId]);
 
   const loadTemplate = async (id) => {
@@ -170,6 +226,9 @@ function RubricsEditor() {
       const response = await fetch(`${PHP_API_URL}/get_template.php?id=${encodeURIComponent(id)}`);
       const result = await response.json();
       if (result.success && result.template) {
+        // Read off the server, not the URL: this is what the lock above checks,
+        // so a hand-edited link cannot claim another programme's rubric.
+        setLoadedProgramme((result.template.programme_code || '').trim());
         setTemplate(normalizeTemplate(result.template.data || {}));
       } else {
         alert(`Failed to load template: ${result.message || 'Unknown error'}`);
@@ -349,9 +408,22 @@ function RubricsEditor() {
     });
     totals.grand_total = grandTotal.toFixed(2);
 
+    // The programme is clamped one last time on the way out. An existing template
+    // keeps the programme it was loaded with; a new one may only be this
+    // coordinator's own programme or shared. Anything else collapses to shared,
+    // so no route into this page — including a hand-edited link — can file a
+    // rubric under a programme that is not yours.
+    const payloadProgramme = isEditMode
+      ? (loadedProgramme || '')
+      : (programmeCode && programmeCode === ownProgramme ? ownProgramme : '');
+
     const payload = {
       ...template,
-      totals
+      totals,
+      // Stored inside the template JSON and, for a new template, written to
+      // `rubrics_templates.programme_id` by save_template.php. An empty value
+      // marks the template as shared rather than unassigned.
+      programme: payloadProgramme,
     };
 
     if (isEditMode) payload.id = templateId;
@@ -401,6 +473,33 @@ function RubricsEditor() {
 
   if (loading) {
     return <div className="rubrics-editor-app"><h2>Loading template...</h2></div>;
+  }
+
+  // Reached only by opening a link to another programme's rubric — the Rubrics
+  // page no longer offers one. Nothing is loaded for editing, so there is no
+  // risk of saving over a cohort's rubric by accident.
+  if (lockedOut) {
+    return (
+      <div className="rubrics-editor-app">
+        <header className="rubrics-editor-header">
+          <div>
+            <h1>Rubrics Editor</h1>
+            <p className="ui-page-subtitle">This rubric belongs to another programme.</p>
+          </div>
+          <div className="controls">
+            <button onClick={() => navigate('/rubrics')}>Back to Marking Rubrics</button>
+          </div>
+        </header>
+        <main>
+          <Callout tone="plain" title="Each programme edits only its own rubrics">
+            This template is kept by <strong>{loadedProgramme}</strong>, and rubrics are marked
+            against the programme that owns them — editing another programme's rubric would change
+            how its students are graded. Your own programme's templates, and any shared ones, are on
+            the Marking Rubrics page.
+          </Callout>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -465,6 +564,51 @@ function RubricsEditor() {
               <option value="FYP2">FYP2</option>
               <option value="Proposal">Proposal</option>
             </select>
+          </div>
+
+          {/* Which programme the template is saved under. It is not a picker:
+              the only choices are the coordinator's own programme and Shared,
+              because a rubric belongs to the cohort it marks. */}
+          <div className="field wide admin-edit-field">
+            <label htmlFor="rubric-programme">Programme</label>
+            {isEditMode ? (
+              <div className="rubric-programme-locked" id="rubric-programme">
+                {loadedProgramme ? (
+                  <>
+                    <span className="rubric-programme-chip">{loadedProgramme}</span>
+                    <span className="rubric-programme-locked-note">this rubric's programme</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="rubric-programme-chip is-shared">Shared</span>
+                    <span className="rubric-programme-locked-note">usable by any programme</span>
+                  </>
+                )}
+              </div>
+            ) : (
+              <select
+                id="rubric-programme"
+                value={programmeCode}
+                onChange={(e) => setProgrammeCode(e.target.value)}
+                className="rubric-select"
+              >
+                {ownProgramme && (
+                  <option value={ownProgramme}>{ownProgramme} — your programme</option>
+                )}
+                <option value="">Shared — any programme may use it</option>
+              </select>
+            )}
+            <p className="ui-hint is-tight" style={{ marginTop: '6px' }}>
+              {isEditMode
+                ? (loadedProgramme
+                  ? `A rubric stays with the programme it was created for, so it cannot be moved to another one. `
+                    + `Your changes affect how ${loadedProgramme} students are marked.`
+                  : 'This template is shared: any programme that has adopted it is affected by your changes.')
+                : (programmeCode
+                  ? `Saved under ${programmeCode}. Only a lecturer in ${programmeCode} sees this rubric.`
+                  : 'Saved as Shared: every programme can see and adopt it, but no programme has it '
+                    + 'active until one of them sets it.')}
+            </p>
           </div>
         </div>
 

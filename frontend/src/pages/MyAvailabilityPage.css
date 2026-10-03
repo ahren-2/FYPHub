@@ -27,7 +27,7 @@
 .slot-cell.available:hover { background-color: #f1fcf4; }
 .available-text { opacity: 0.6; }
 
-/* 已占用格子的红色样式 */
+/* Red style for occupied cells */
 .slot-cell.booked {
   background-color: #fff5f5;
   border-left: 4px solid #ff4d4f;
@@ -38,7 +38,7 @@
 .booking-info strong { display: block; font-size: 0.9rem; margin-bottom: 2px; }
 .booking-sub { font-size: 0.7rem; color: #f5222d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
 
-/* Modal 增强样式 */
+/* Modal enhancement styles */
 .modal-backdrop {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
@@ -59,7 +59,7 @@
   color: #0050b3;
 }
 
-/* 别人的预约：浅灰色/浅红色，代表占用 */
+/* Someone else's booking: light grey / light red to show it is taken */
 .slot-cell.booked-others {
   background-color: #fafafa;
   border-left: 4px solid #d9d9d9;
