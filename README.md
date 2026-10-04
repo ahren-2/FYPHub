@@ -1,7 +1,7 @@
 # FYPHub
 
-Final Year Project Hub — a local/campus web system for managing FYP students, projects,
-timetables, milestones, announcements, and rubric-based assessment.
+Final Year Project Hub — a web based system for managing FYP students, projects,
+timetables, milestones and rubric-based assessment.
 
 | | |
 |---|---|
@@ -12,6 +12,8 @@ timetables, milestones, announcements, and rubric-based assessment.
 
 This README is the **quick start**: get a fresh clone running. Anything marked
 *→ full guide* is covered in depth in `NEW_ENVIRONMENT_SETUP_final.md`.
+
+## There is a file named Comments & Suggestions, inside the file contains suggestions for future work that has not been completed as of handover date. Please refer to it.
 
 ---
 
