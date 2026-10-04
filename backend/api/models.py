@@ -19,7 +19,18 @@ class Profile(models.Model):
         ('coordinator', 'Coordinator'), ('admin', 'Administrator'),
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=255, blank=True, verbose_name="Full Name")
+    # Required, not merely recommended. Every list, marks table and schedule
+    # names an account by this field and falls back to the username when it is
+    # blank, so an account without one is shown under a different name on every
+    # screen it reaches.
+    #
+    # `blank=False` is the model-and-form half of that rule (Django's own admin);
+    # `UserWriteSerializer` enforces the same rule on the API, which is the path
+    # User Management writes through. It is a validation flag rather than a column
+    # change — the column was already NOT NULL — so accounts created before the
+    # rule existed keep their blank name, and stay editable so a coordinator can
+    # fill one in.
+    full_name = models.CharField(max_length=255, blank=False, verbose_name="Full Name")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     programme = models.ForeignKey(Programme, on_delete=models.SET_NULL, null=True, blank=True)
     phone_no = models.CharField(max_length=50, blank=True, null=True)

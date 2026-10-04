@@ -212,6 +212,7 @@ export const PAGE_GUIDE = {
       'Upload information creates accounts from an Excel (.xlsx) file, one row per person.',
       'Filter by role or by programme, then use View for an account’s full details.',
       'Edit changes an account’s name, role, programme or sign-in password; Delete removes it.',
+      'A full name is required on every account — it is what the lists, marks tables and schedules show the person by, so an account saved without one appears under its username instead.',
       'A coordinator sees only their own programme here. An administrator sees every programme and every role.',
       'Transferring coordinator access to another lecturer also demotes you — this cannot be undone.',
     ],
@@ -223,6 +224,7 @@ export const PAGE_GUIDE = {
     steps: [
       'Everything on this page is read-only. Your coordinator changes these details for you.',
       'Your role and programme decide which pages and which students you can see.',
+      'A student ID is shown on a student account only — a lecturer, coordinator or administrator holds no matric number.',
       'A coordinator also sees a delete option at the bottom. It asks for your password because it cannot be undone.',
     ],
     tip: 'Deleting a coordinator account does not hand your students to anyone else. Reassign them in User Management first.',

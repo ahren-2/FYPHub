@@ -50,7 +50,9 @@ const NAV_SECTIONS = {
   ],
   lecturer: [
     { title: 'Overview', paths: ['/dashboard', '/announcements'] },
-    { title: 'My Students', paths: ['/trf-review', '/all-submissions', '/assessment', '/milestones'] },
+    // Milestones is listed before Assessment on purpose: verifying a student's
+    // weekly progress is the routine duty, marking is what it feeds into.
+    { title: 'My Students', paths: ['/trf-review', '/all-submissions', '/milestones', '/assessment'] },
     { title: 'Presentations', paths: ['/my-availability', '/present-schedule'] },
     { title: 'Account', paths: ['/profile'] },
   ],

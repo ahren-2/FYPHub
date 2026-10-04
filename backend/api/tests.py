@@ -4,6 +4,7 @@ import importlib
 import pandas as pd
 from django.apps import apps
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from rest_framework.test import APIClient, APIRequestFactory
 
@@ -106,6 +107,7 @@ class UserProgrammeAssignmentTests(TestCase):
         """
         serializer = self.serializer({
             'username': 'anyprogramme',
+            'full_name': 'Any Programme Lecturer',
             'role': 'lecturer',
             'programme': self.bse.id,
             'password': 'secret123',
@@ -116,6 +118,7 @@ class UserProgrammeAssignmentTests(TestCase):
     def test_programme_defaults_to_the_coordinators_own_when_omitted(self):
         serializer = self.serializer({
             'username': 'noprogrammesent',
+            'full_name': 'No Programme Lecturer',
             'role': 'lecturer',
             'password': 'secret123',
         })
@@ -216,6 +219,99 @@ class UserProgrammeAssignmentTests(TestCase):
         project.refresh_from_db()
         self.assertEqual(student.profile.programme, self.bse)
         self.assertEqual(project.programme, self.bse)
+
+
+class FullNameRequiredTests(TestCase):
+    """An account cannot be created or edited into having no full name.
+
+    The name is how a person is identified on every screen that lists them, and
+    each of those screens falls back to the username when it is blank — so an
+    account saved without one was shown under a different name in the student
+    list, the marks table and the schedules. The rule is enforced on the API and
+    not only on the form, because the form is not the only caller, and it is
+    deliberately blind to partial edits: an unrelated change must not turn into a
+    demand for a name.
+    """
+
+    def setUp(self):
+        self.bsc = make_programme('Bachelor of Computer Science', 'BCS')
+        self.coordinator = make_user('namecoord', 'coordinator', self.bsc)
+        self.api = APIClient()
+        self.api.force_authenticate(user=self.coordinator)
+
+    def create(self, **overrides):
+        payload = {
+            'username': 'nameless',
+            'full_name': 'Nameless Student',
+            'role': 'student',
+            'programme': self.bsc.id,
+            'password': 'secret123',
+        }
+        payload.update(overrides)
+        return self.api.post('/users/', payload, format='json')
+
+    def test_an_account_cannot_be_created_with_a_blank_name(self):
+        response = self.create(full_name='')
+
+        self.assertEqual(response.status_code, 400, getattr(response, 'data', None))
+        self.assertIn('full_name', response.data)
+        self.assertFalse(User.objects.filter(username='nameless').exists())
+
+    def test_a_name_of_only_spaces_is_refused(self):
+        """`allow_blank` lets '   ' through, and it strips down to no name."""
+        response = self.create(full_name='   ')
+
+        self.assertEqual(response.status_code, 400, getattr(response, 'data', None))
+        self.assertIn('full_name', response.data)
+        self.assertFalse(User.objects.filter(username='nameless').exists())
+
+    def test_a_request_that_omits_the_name_entirely_is_refused(self):
+        response = self.api.post('/users/', {
+            'username': 'nonamefield',
+            'role': 'student',
+            'programme': self.bsc.id,
+            'password': 'secret123',
+        }, format='json')
+
+        self.assertEqual(response.status_code, 400, getattr(response, 'data', None))
+        self.assertIn('full_name', response.data)
+        self.assertFalse(User.objects.filter(username='nonamefield').exists())
+
+    def test_an_edit_cannot_blank_an_existing_name(self):
+        student = make_user('named', 'student', self.bsc, student_id_no='A1')
+
+        response = self.api.patch(
+            f'/users/{student.id}/', {'full_name': '  '}, format='json'
+        )
+
+        self.assertEqual(response.status_code, 400, getattr(response, 'data', None))
+        student.profile.refresh_from_db()
+        self.assertEqual(student.profile.full_name, 'Named')
+
+    def test_an_edit_that_does_not_touch_the_name_still_saves(self):
+        """A partial edit must not be answered with a demand for a name."""
+        student = make_user('untouched', 'student', self.bsc)
+
+        response = self.api.patch(
+            f'/users/{student.id}/', {'phone_no': '0123456789'}, format='json'
+        )
+
+        self.assertEqual(response.status_code, 200, getattr(response, 'data', None))
+        student.profile.refresh_from_db()
+        self.assertEqual(student.profile.phone_no, '0123456789')
+        self.assertEqual(student.profile.full_name, 'Untouched')
+
+    def test_the_model_refuses_a_blank_name_outside_the_api(self):
+        """`blank=False` is the half of the rule Django's own forms obey."""
+        profile = Profile(
+            user=User.objects.create_user('formcheck', password='secret123'),
+            full_name='',
+            role='student',
+            programme=self.bsc,
+        )
+
+        with self.assertRaises(ValidationError):
+            profile.full_clean()
 
 
 class SpreadsheetUploadProgrammeTests(TestCase):

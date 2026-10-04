@@ -38,6 +38,12 @@ class UserSerializer(serializers.ModelSerializer):
 # a password. Matches the default the bulk Excel upload uses.
 DEFAULT_NEW_USER_PASSWORD = 'wow12345'
 
+# One wording for the rule, so the form, the API and the tests cannot disagree
+# about what is being asked for.
+FULL_NAME_REQUIRED_MESSAGE = (
+    'A full name is required — it is what this account is shown by everywhere in FYPHub.'
+)
+
 
 def actor_programme(request):
     """The signed-in account's programme, or None.
@@ -70,7 +76,20 @@ class UserWriteSerializer(serializers.ModelSerializer):
         min_length=6,
         error_messages={'min_length': 'The password must be at least 6 characters long.'},
     )
-    full_name = serializers.CharField(source='profile.full_name', required=False, allow_blank=True)
+    # Required, and never blank. The full name is how an account is named to a
+    # human: the student list, the marks table, the timetable and the
+    # announcements all read `profile.full_name` and quietly fall back to the
+    # username when it is empty, so an account saved without one appears under a
+    # different name on every screen it reaches.
+    full_name = serializers.CharField(
+        source='profile.full_name',
+        required=True,
+        allow_blank=False,
+        error_messages={
+            'required': FULL_NAME_REQUIRED_MESSAGE,
+            'blank': FULL_NAME_REQUIRED_MESSAGE,
+        },
+    )
     role = serializers.ChoiceField(choices=Profile.ROLE_CHOICES, source='profile.role', required=False)
     student_id_no = serializers.CharField(
         source='profile.student_id_no', required=False, allow_blank=True, allow_null=True
@@ -118,6 +137,19 @@ class UserWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Only an administrator can grant administrator access.'
             )
+        return value
+
+    def validate_full_name(self, value):
+        """Whitespace is not a name.
+
+        ``allow_blank=False`` refuses ``''`` but lets ``'   '`` through, and that
+        strips down to the empty name this field was made required to prevent —
+        which is exactly the state that leaves an account showing as its
+        username in every list.
+        """
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError(FULL_NAME_REQUIRED_MESSAGE)
         return value
 
     def validate_username(self, value):

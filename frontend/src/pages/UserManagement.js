@@ -363,6 +363,16 @@ function UserManagement() {
         setFormError('');
 
         const username = formData.username.trim();
+        const fullName = formData.full_name.trim();
+        // The name is what every other screen shows this person by — the student
+        // list, the marks table, schedules and announcements all read
+        // `full_name` and fall back to the username when it is blank, which is
+        // why an account saved without one looks like a different person in
+        // every list it appears in.
+        if (!fullName) {
+            setFormError('A full name is required — it is what this account is shown by everywhere in FYPHub.');
+            return;
+        }
         if (!username) {
             setFormError('A username is required.');
             return;
@@ -404,7 +414,7 @@ function UserManagement() {
         const payload = {
             username,
             email: formData.email.trim(),
-            full_name: formData.full_name.trim(),
+            full_name: fullName,
             role: formData.role,
             // `null` is accepted by the API and means "no cohort", which is what
             // an administrator account holds. Only reachable for that role: the
@@ -581,7 +591,21 @@ function UserManagement() {
                                 return (
                                   <tr key={user.id}>
                                       <td>{index + 1}</td>
-                                      <td className="um-cell-name">{user.full_name || user.username}</td>
+                                      <td className="um-cell-name">
+                                        {/* Accounts created before the name became
+                                            required still hold none. They fall back to
+                                            the username, and the short marker is what
+                                            tells the coordinator there is something to
+                                            fix on that row rather than a name they
+                                            simply do not recognise. */}
+                                        {user.full_name || user.username}
+                                        {!user.full_name && (
+                                          <span
+                                            className="um-cell-muted"
+                                            title="No full name is recorded for this account. Open Edit and add one."
+                                          > · no name recorded</span>
+                                        )}
+                                      </td>
                                       <td className="um-cell-username">{user.username}</td>
                                       <td>
                                         {/* An account with no Profile row (a
@@ -700,14 +724,19 @@ function UserManagement() {
 
                                 <div className="form-grid">
                                     <div className="form-field">
-                                        <label htmlFor="um-full-name">Full Name</label>
+                                        <label htmlFor="um-full-name">Full Name <span className="required-mark">*</span></label>
                                         <input
                                             id="um-full-name"
                                             type="text"
                                             value={formData.full_name}
                                             onChange={(e) => handleFormChange('full_name', e.target.value)}
-                                            placeholder="e.g. Nur Aisyah binti Hassan"
+                                            placeholder="e.g. Full Name"
+                                            required
                                         />
+                                        <p className="ui-hint form-hint">
+                                            Shown throughout FYPHub — the student list, the marks table, schedules and
+                                            announcements all name this account by it.
+                                        </p>
                                     </div>
 
                                     <div className="form-field">
@@ -797,7 +826,7 @@ function UserManagement() {
                                                 type="text"
                                                 value={formData.student_id_no}
                                                 onChange={(e) => handleFormChange('student_id_no', e.target.value)}
-                                                placeholder="e.g. A123456"
+                                                placeholder="e.g. BXX26020001"
                                             />
                                             {isEdit
                                                 && (formData.student_id_no || '').trim() !== (formData.loaded_student_id_no || '').trim() && (
@@ -946,7 +975,13 @@ function UserManagement() {
                             </p>
                             <p><strong>Email:</strong> <span>{selectedUser.email || 'N/A'}</span></p>
                             <p><strong>Phone:</strong> <span>{selectedUser.phone_no || 'N/A'}</span></p>
-                            <p><strong>Student ID:</strong> <span>{selectedUser.student_id_no || 'N/A'}</span></p>
+                            {/* Only a student holds a matric number, so the row is
+                                left out for every other role instead of reading
+                                "N/A" — the same rule the edit form and My Profile
+                                follow. */}
+                            {selectedUser.role === 'student' && (
+                                <p><strong>Student ID:</strong> <span>{selectedUser.student_id_no || 'N/A'}</span></p>
+                            )}
                             <p><strong>Role:</strong> <span className={`role-tag role-${selectedUser.role}`}>{selectedUser.role || 'No profile'}</span></p>
                             <p>
                                 <strong>Programme:</strong>{' '}

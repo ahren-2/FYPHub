@@ -70,71 +70,8 @@ function CoordinatorDashboard() {
       )}
 
       <div className="coordinator-grid">
-        {/* 1. Announcement digest */}
-        <div className="card">
-          <div className="ui-section-head">
-            <div>
-              <h3>Announcement Board</h3>
-              <span className="ui-sub">Your three most recent notices.</span>
-            </div>
-          </div>
-          <ul className="announcement-list">
-            {announcements.map(ann => (
-              <li key={ann.id}>📌 {ann.title}</li>
-            ))}
-            {announcements.length === 0 && <li>No announcements published yet.</li>}
-          </ul>
-          <button className="btn btn-primary" onClick={() => navigate('/manage-announcements')}>
-            + Manage All
-          </button>
-        </div>
-
-        {/* 2. Supervisor capacity */}
-        <div className="card">
-          <div className="ui-section-head">
-            <div>
-              <h3>
-                Supervisor Quota
-              </h3>
-              <span className="ui-sub">First five supervisors in your programme, with remaining capacity.</span>
-            </div>
-          </div>
-          <table style={{ fontSize: '0.85rem' }}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Assigned / Quota</th>
-                <th>Available</th>
-              </tr>
-            </thead>
-            <tbody>
-              {quotas.map(q => {
-                const total = Number(q.total_quota) || 0;
-                const assigned = Number(q.assigned_count) || 0;
-                const available = q.available_quota !== undefined ? Number(q.available_quota) : Math.max(total - assigned, 0);
-                return (
-                  <tr key={q.id}>
-                    <td>{q.name}</td>
-                    <td>
-                      <Meter value={assigned} max={total} label={`${assigned} / ${total}`} />
-                    </td>
-                    <td style={{ fontWeight: 'bold', color: available === 0 ? '#dc3545' : '#198754' }}>
-                      {available === 0 ? 'Full' : available}
-                    </td>
-                  </tr>
-                );
-              })}
-              {quotas.length === 0 && (
-                <tr><td colSpan="3">No supervisor records found.</td></tr>
-              )}
-            </tbody>
-          </table>
-          <button className="btn btn-secondary" onClick={() => navigate('/supervisor-quota')}>
-            Manage quotas
-          </button>
-        </div>
-
-        {/* 3. Course-wide counts */}
+        {/* 1. Course-wide counts. Leads the grid: these are the figures a
+            coordinator opens the dashboard to read. */}
         <div className="card">
           <div className="ui-section-head">
             <div>
@@ -188,6 +125,71 @@ function CoordinatorDashboard() {
           </ul>
           <button className="btn btn-secondary" onClick={() => navigate('/project-overview')}>
             View full overview
+          </button>
+        </div>
+
+        {/* 2. Supervisor capacity */}
+        <div className="card">
+          <div className="ui-section-head">
+            <div>
+              <h3>
+                Supervisor Quota
+              </h3>
+              <span className="ui-sub">First five supervisors in your programme, with remaining capacity.</span>
+            </div>
+          </div>
+          <table style={{ fontSize: '0.85rem' }}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Assigned / Quota</th>
+                <th>Available</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quotas.map(q => {
+                const total = Number(q.total_quota) || 0;
+                const assigned = Number(q.assigned_count) || 0;
+                const available = q.available_quota !== undefined ? Number(q.available_quota) : Math.max(total - assigned, 0);
+                return (
+                  <tr key={q.id}>
+                    <td>{q.name}</td>
+                    <td>
+                      <Meter value={assigned} max={total} label={`${assigned} / ${total}`} />
+                    </td>
+                    <td style={{ fontWeight: 'bold', color: available === 0 ? '#dc3545' : '#198754' }}>
+                      {available === 0 ? 'Full' : available}
+                    </td>
+                  </tr>
+                );
+              })}
+              {quotas.length === 0 && (
+                <tr><td colSpan="3">No supervisor records found.</td></tr>
+              )}
+            </tbody>
+          </table>
+          <button className="btn btn-secondary" onClick={() => navigate('/supervisor-quota')}>
+            Manage quotas
+          </button>
+        </div>
+
+        {/* 3. Announcement digest. Moved to the last slot so the summary reads
+            first, where the counts belong. */}
+        <div className="card">
+          <div className="ui-section-head">
+            <div>
+              <h3>Announcement Board</h3>
+              <span className="ui-sub">Your three most recent notices.</span>
+            </div>
+          </div>
+          <ul className="announcement-list">
+            {announcements.map(ann => (
+              <li key={ann.id}>📌 {ann.title}</li>
+            ))}
+            {announcements.length === 0 && <li>No announcements published yet.</li>}
+          </ul>
+          <button className="btn btn-primary" onClick={() => navigate('/manage-announcements')}>
+            + Manage All
           </button>
         </div>
       </div>

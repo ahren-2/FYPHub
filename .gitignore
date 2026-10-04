@@ -1,0 +1,66 @@
+# ---------------------------------------------------------------------------
+# Build products and local state. These are large or machine-specific and are
+# deliberately NOT part of the repository.
+# ---------------------------------------------------------------------------
+
+# Python virtual environment (~210 MB). Create yours with: py -3.11 -m venv venv
+venv/
+.venv/
+
+# React packages. Create yours with: cd frontend && npm install
+node_modules/
+frontend/build/
+npm-debug.log*
+yarn-error.log*
+
+# ESLint output written by a local run
+eslint-report.json
+
+# ---------------------------------------------------------------------------
+# Secrets and local overrides
+# ---------------------------------------------------------------------------
+
+# Google service-account key. Supply your own copy; it is never committed.
+client_secret.json
+
+# ---------------------------------------------------------------------------
+# Database dumps. DECISION RECORDED: these are shipped with the folder (or over
+# a private channel), never committed to the remote.
+#
+# They contain every auth_user password hash and every plain-text
+# api_profile.visible_password value, so pushing them would leak real accounts.
+# HANDOVER.md documents what they contain, and blanking visible_password is
+# still required before the package is circulated.
+#
+# The rules below are a guard: they stop a future `git add -A` from sweeping a
+# dump into a commit. Dumps that were committed before these rules existed stay
+# tracked until they are deliberately removed.
+# ---------------------------------------------------------------------------
+database/handover/
+database/backups/
+database/recovered/
+/fyp_hub_db*.sql
+/*dump*.sql
+
+.env
+.env.local
+.env.*.local
+
+# ---------------------------------------------------------------------------
+# Python bytecode
+# ---------------------------------------------------------------------------
+# Note: several *.pyc files under backend/api/__pycache__/ were committed before
+# this file existed and are therefore still tracked. Remove them with
+#     git rm -r --cached backend/api/__pycache__ backend/backend/__pycache__
+# if you want the repository cleaned up.
+__pycache__/
+*.py[cod]
+
+# ---------------------------------------------------------------------------
+# Editor and OS noise
+# ---------------------------------------------------------------------------
+
+# Word lock files, created while a .docx is open (the manual, for example)
+~$*.docx
+.DS_Store
+Thumbs.db

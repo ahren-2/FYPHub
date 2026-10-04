@@ -92,6 +92,12 @@ function ProfilePage() {
     );
   }
 
+  // A matric number belongs to a student and to nobody else. Lecturers,
+  // coordinators and administrators were all being shown the row anyway, as a
+  // bare "Student ID —", which reads as a missing detail the account holder is
+  // supposed to supply rather than a field that cannot apply to their role.
+  const isStudent = me.role === 'student';
+
   const facts = [
     { label: 'Full name', value: me.full_name || '—' },
     { label: 'Username', value: me.username || '—' },
@@ -102,7 +108,7 @@ function ProfilePage() {
     },
     { label: 'Role', value: ROLE_LABELS[me.role] || me.role },
     { label: 'Phone number', value: me.phone_no || '—' },
-    { label: 'Student ID', value: me.student_id_no || '—' },
+    ...(isStudent ? [{ label: 'Student ID', value: me.student_id_no || '—' }] : []),
   ];
 
   return (
@@ -145,7 +151,7 @@ function ProfilePage() {
 
           <Callout tone="warn" title="Read this before you continue">
             Deleting your account removes your sign-in and your profile immediately. Students and
-            projects you supervise are <strong>not</strong> reassigned — they keep their record but
+            projects you supervise are not reassigned — they keep their record but
             lose their supervisor, so someone else has to be given them. If you are the only
             coordinator left in your programme, nobody will be able to publish announcements, set
             quotas or change rubrics for that cohort until another coordinator is appointed.

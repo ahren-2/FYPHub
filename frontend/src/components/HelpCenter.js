@@ -20,8 +20,9 @@ export const NAV_LINKS = {
     { name: 'Announcements', path: '/announcements', hint: 'Notices from the coordinator' },
     { name: 'My Students', path: '/trf-review', hint: 'TRFs sent to you' },
     { name: 'All Submissions', path: '/all-submissions', hint: 'Every TRF in the programme' },
-    { name: 'Assessment', path: '/assessment', hint: 'Mark your students' },
+    // Same order as the sidebar's "My Students" section (see layouts/MainLayout.js).
     { name: 'Milestones', path: '/milestones', hint: 'Verify weekly progress' },
+    { name: 'Assessment', path: '/assessment', hint: 'Mark your students' },
     { name: 'My Availability', path: '/my-availability', hint: 'Book presentation slots' },
     { name: 'Present Schedule', path: '/present-schedule', hint: 'Full timetable' },
     { name: 'My Profile', path: '/profile', hint: 'Your account details' },
