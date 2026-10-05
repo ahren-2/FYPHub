@@ -79,6 +79,10 @@ on a fresh install.
 So `manage.py is not recognised`, or `venv\Scripts\python.exe not found`, after cloning means
 the venv has simply not been created yet.
 
+The working dataset is **not** missing: `database/handover/fyp_hub_db_handover_migrate0024_20261004.sql`
+is committed and arrives with the clone (§Step 4, Path B). A second, older dump and the
+pre-curation snapshot sit beside it but are gitignored.
+
 ---
 
 ## 3. Quick start
@@ -177,25 +181,28 @@ database. Migration `0023` seeds the admin account automatically:
 | Password | `password1` |
 | Role | `admin` — sees **User Management** only, spans every programme |
 
-**Path B — restore the working dataset**, if you have `database/handover/fyp_hub_db_handover.sql`
-(this checkout does ship it). Restore it *after* Step 3:
+**Path B — restore the working dataset.** The dump ships with this repository at
+`database/handover/fyp_hub_db_handover_migrate0024_20261004.sql`. Restore it *after* Step 3:
 
 ```powershell
-Get-Content database/handover/fyp_hub_db_handover.sql -Raw | mysql -h 127.0.0.1 -u root fyp_hub_db
+Get-Content database/handover/fyp_hub_db_handover_migrate0024_20261004.sql -Raw | mysql -h 127.0.0.1 -u root fyp_hub_db
 
 cd backend
-python manage.py migrate                  # CRITICAL — see note below
-python manage.py showmigrations api       # must now end at 0024
+python manage.py showmigrations api       # the dump's own ledger records 0024
+python manage.py migrate                  # applies anything still pending
 cd ..
 ```
 
-> **The dump is at migration `0016`; the code is at `0024`. Re-running `migrate` is not
-> optional** — skipping it leaves the rubric tables unscoped, marks without a course/stage,
-> and the `admin` account missing. `0017`–`0024` are functional data migrations.
-> Because PowerShell does not support `<` redirection, pipe with `Get-Content -Raw` as shown.
-> The restored accounts include 38 students, 12 lecturers and 6 coordinators; look up working
-> passwords in **User Management** (`api_profile.visible_password` stores them in plain text
-> by design). *→ full guide §4.4*
+> **The dump is tagged with the migration it was taken at.** This one records `0024`, matching the
+> code, so it restores straight in — but always re-run `migrate` after a restore: on an older dump
+> that step is what scopes the rubric tables, backfills mark course/stage, and creates the `admin`
+> account. Because PowerShell does not support `<` redirection, pipe with `Get-Content -Raw` as
+> shown.
+>
+> **The dump carries every password in the clear.** `api_profile.visible_password` holds a readable
+> copy so a coordinator can look up or correct a sign-in; it is committed deliberately, so anyone
+> with repository access can read every account's password. Rotate the accounts before this
+> repository is made public. *→ full guide §4.4, manual §16.1*
 
 ### Step 5 — Seed students and projects (optional, not recommended)
 
@@ -467,7 +474,7 @@ one.)
 |---|---|
 | [`NEW_ENVIRONMENT_SETUP_final.md`](NEW_ENVIRONMENT_SETUP_final.md) | The authoritative setup guide: every step with observed output, all database and PHP-serving alternatives, the migration-by-migration restore notes, config reference, full troubleshooting and log locations, verification commands. |
 | `SETUP_NEW_ENVIRONMENT.md` | Earlier draft of the same guide — superseded by the `_final` file. |
-| `database/` | `_verify_*.py` diagnostics, plus `handover/` with the working dataset dump. |
+| `database/` | `_verify_*.py` diagnostics, `_export_handover_dump.py` and `_db_state_report.py` for taking and checking a dump, plus `handover/` with the working dataset dump. |
 | `php/` | The sidecar scripts (11 files) — read `db_config.php` first for the connection contract. |
 
 > The `README.md` / `HANDOVER.md` / `README_PHP_BACKEND.md` / `API_TESTING_GUIDE.md` /
